@@ -80,6 +80,9 @@ func PostProductToCart(c echo.Context) error {
 func GetCart(c echo.Context) error {
 	result, err := customerService.GetCart(c)
 	if err != nil {
+		if err.Error() == "Tidak ada barang di keranjang" {
+			return c.JSON(http.StatusOK, dto.BuildResponse("Success get cart", err.Error()))
+		}
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to get cart", err))
 	}
 	return c.JSON(http.StatusOK, dto.BuildResponse("Success get cart", result))
@@ -120,11 +123,27 @@ func Checkout(c echo.Context) error {
 }
 
 func ConfirmCheckout(c echo.Context) error {
-	result, err := customerService.ConfirmCheckout(c)
+	var checkout model.Checkout_Binding
+	if err := c.Bind(&checkout); err != nil {
+		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
+	}
+	result, err := customerService.ConfirmCheckout(c, checkout)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to confirm checkout", err))
 	}
 	return c.JSON(http.StatusOK, dto.BuildResponse("Success confirm checkout", result))
+}
+
+func ConfirmPayment(c echo.Context) error {
+	var payment model.Payment_Binding
+	if err := c.Bind(&payment); err != nil {
+		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
+	}
+	err := customerService.ConfirmPayment(c, payment)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to confirm payment", err))
+	}
+	return c.JSON(http.StatusOK, dto.BuildResponse("Success send payment confirmation", nil))
 }
 
 func GetHistory(c echo.Context) error {
@@ -135,7 +154,7 @@ func GetHistory(c echo.Context) error {
 	return c.JSON(http.StatusOK, dto.BuildResponse("Success get history", result))
 }
 
-func GetHistoryById(c echo.Context) error {
+func GetHistoryDetail(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
@@ -154,12 +173,24 @@ func PostFeedback(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
 
-	feedback := model.Feedback{}
+	err = customerService.CreatFeedbackPemesanan(c, uint(id))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to create feedback", err))
+	}
+
+	id_produk, err := strconv.Atoi(c.Param("id_produk"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
+	}
+
+	var feedback model.Feedback
 	if err := c.Bind(&feedback); err != nil {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
 
-	result, err := customerService.PostFeedback(c, id, feedback)
+	feedback.IdProduk = uint(id_produk)
+	var result model.Feedback_View
+	result, err = customerService.PostFeedback(c, feedback)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to post feedback", err))
 	}

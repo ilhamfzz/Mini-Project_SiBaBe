@@ -6,6 +6,7 @@ CREATE TABLE Customer(
 	c_email VARCHAR(64) NOT NULL,
 	c_no_telp VARCHAR(16) NOT NULL,
 	c_alamat VARCHAR(64)
+    c_created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 );
 
 CREATE TABLE Pemesanan(
@@ -17,7 +18,9 @@ CREATE TABLE Pemesanan(
 	pmsn_total_harga INTEGER NOT NULL,
 	pmsn_status VARCHAR(16) NOT NULL,
 	pmsn_alamat VARCHAR(512) NOT NULL,
-	pmsn_resi VARCHAR(32) NOT NULL,
+	pmsn_kurir VARCHAR(32) NOT NULL,
+    pmsn_bukti_pembayaran VARCHAR(64),
+    pmsn_divalidasi_oleh VARCHAR(16),
 	FOREIGN KEY (c_username) REFERENCES Customer(c_username),
     FOREIGN KEY (k_id) REFERENCES Keranjang(k_id)
 );
@@ -51,13 +54,14 @@ CREATE TABLE Produk(
 CREATE TABLE Keranjang(
     k_id CHAR(6) PRIMARY KEY,
     c_username VARCHAR(16) NOT NULL,
-    k_total_barang INTEGER NOT NULL,
+    k_total_harga INTEGER NOT NULL,
+    k_status VARCHAR(16) NOT NULL,
     FOREIGN KEY (c_username) REFERENCES Customer(c_username)
 );
 
 CREATE TABLE Produk_Keranjang(
-    p_id CHAR(6) NOT NULL,
     k_id CHAR(6) NOT NULL,
+    p_id CHAR(6) NOT NULL,
     pk_jumlah_produk INTEGER NOT NULL,
     pk_total_harga INTEGER NOT NULL,
     FOREIGN KEY (p_id) REFERENCES Produk(p_id),
@@ -70,6 +74,14 @@ CREATE TABLE Admin(
     adm_nama VARCHAR(128) NOT NULL,
     adm_email VARCHAR(64) NOT NULL,
     adm_no_telp VARCHAR(16) NOT NULL
+);
+
+CREATE TABLE Admin_Pemesanan(
+    adm_username VARCHAR(16) NOT NULL,
+    pmsn_id CHAR(6) NOT NULL,
+    ap_tanggal DATE NOT NULL,
+    FOREIGN KEY (adm_username) REFERENCES Admin(adm_username),
+    FOREIGN KEY (pmsn_id) REFERENCES Pemesanan(pmsn_id)
 );
 
 CREATE TABLE Produksi(

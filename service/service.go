@@ -12,16 +12,18 @@ type CustomerSvc interface {
 	GetAllProduct(c echo.Context) ([]model.Produk, error)
 	GetProductById(c echo.Context, id int) (model.Detail_Produk_View, error)
 	LoginUser(c echo.Context, user model.Customer) (dto.Login, error)
+	CreateChart(c echo.Context) (model.Keranjang, error)
 	PostProductToCart(c echo.Context, id int) (model.Produk_Keranjang, error)
 	GetCart(c echo.Context) (model.Keranjang_View, error)
 	UpdateProductFromCartPlus(c echo.Context, id int) (model.Produk_Keranjang, error)
 	UpdateProductFromCartMinus(c echo.Context, id int) (model.Produk_Keranjang, error)
-	DeleteProductFromCart(c echo.Context, id int) error
 	Checkout(c echo.Context) (model.Keranjang_View, error)
-	ConfirmCheckout(c echo.Context) (model.Keranjang_View, error)
+	ConfirmCheckout(c echo.Context, checkout model.Checkout_Binding) (model.Checkout, error)
+	ConfirmPayment(c echo.Context, payment model.Payment_Binding) error
 	GetHistory(c echo.Context) (model.History_View, error)
 	GetHistoryDetail(c echo.Context, id int) (model.Detail_History_View, error)
-	PostFeedback(c echo.Context, id int, feedback model.Feedback) (model.Feedback_View, error)
+	CreatFeedbackPemesanan(c echo.Context, id uint) error
+	PostFeedback(c echo.Context, feedback model.Feedback) (model.Feedback_View, error)
 }
 
 type AdminSvc interface {

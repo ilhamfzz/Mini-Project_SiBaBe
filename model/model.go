@@ -1,8 +1,9 @@
 package model
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 var DB *gorm.DB
@@ -39,7 +40,7 @@ type Keranjang struct {
 	gorm.Model
 	Username   string `json:"username"`
 	TotalHarga uint   `json:"total_harga"`
-	Status     bool   `json:"status"`
+	Status     string `json:"status"`
 }
 
 type Produk_Keranjang struct {
@@ -65,21 +66,22 @@ type Produk_Produksi struct {
 }
 
 type Pemesanan struct {
-	Id               uint      `json:"id"`
-	CustomerUsername string    `json:"customer_username"`
-	Tanggal          time.Time `json:"tanggal"`
-	JumlahBarang     uint      `json:"jumlah_barang"`
-	TotalHarga       uint      `json:"total_harga"`
-	Status           string    `json:"status"`
-	Alamat           string    `json:"alamat"`
-	Resi             string    `json:"resi"`
+	gorm.Model
+	IdKeranjang      uint   `json:"id_keranjang"`
+	CustomerUsername string `json:"customer_username"`
+	JumlahBarang     uint   `json:"jumlah_barang"`
+	TotalHarga       uint   `json:"total_harga"`
+	Status           string `json:"status"`
+	Alamat           string `json:"alamat"`
+	Kurir            string `json:"kurir"`
+	BuktiPembayaran  string `json:"bukti_pembayaran"`
+	DiValidasiOleh   string `json:"di_validasi_oleh"`
 }
 
-type Produk_Pemesanan struct {
-	IdProduk     uint `json:"id_produk"`
-	IdPemesanan  uint `json:"id_pemesanan"`
-	JumlahProduk uint `json:"jumlah_produk"`
-	TotalHarga   uint `json:"total_harga"`
+type Admin_Pemesanan struct {
+	IdPemesanan     uint      `json:"id_pemesanan"`
+	UsernameAdmin   string    `json:"username_admin"`
+	TanggalValidasi time.Time `json:"tanggal_validasi"`
 }
 
 type Feedback_Pemesanan struct {

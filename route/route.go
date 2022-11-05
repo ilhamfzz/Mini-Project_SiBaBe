@@ -32,11 +32,11 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 	eJwt.GET("/chart/product/:id", controller.UpdateProductFromCartPlus)
 	eJwt.GET("/chart/product/:id", controller.UpdateProductFromCartMinus)
 	eJwt.GET("/checkout", controller.Checkout)
-	eJwt.GET("/checkout/confrim", controller.ConfirmCheckout)
-
+	eJwt.POST("/checkout/confrim", controller.ConfirmCheckout)
+	eJwt.POST("/checkout/confirm/payment", controller.ConfirmPayment)
 	eJwt.GET("/history", controller.GetHistory)
-	eJwt.GET("/history/:id", controller.GetHistoryById)
-	eJwt.POST("Feedback/:id", controller.PostFeedback)
+	eJwt.GET("/history/:id", controller.GetHistoryDetail)
+	eJwt.POST("/history/:id/feedback/:id_produk", controller.PostFeedback)
 
 	// Routing withouth JWT at Admin Page
 	eAdmin := e.Group("/admin")
