@@ -3,7 +3,6 @@ package model
 import "time"
 
 type Laporan_Keuangann struct {
-	Id               uint      `json:"id"`
 	Tanggal          time.Time `json:"tanggal"`
 	TotalPemasukan   uint      `json:"total_pemasukan"`
 	TotalPengeluaran uint      `json:"total_pengeluaran"`

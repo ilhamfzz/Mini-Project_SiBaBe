@@ -80,7 +80,7 @@ func PostProductToCart(c echo.Context) error {
 func GetCart(c echo.Context) error {
 	result, err := customerService.GetCart(c)
 	if err != nil {
-		if err.Error() == "Tidak ada barang di keranjang" {
+		if err.Error() == "tidak ada barang di keranjang" {
 			return c.JSON(http.StatusOK, dto.BuildResponse("Success get cart", err.Error()))
 		}
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to get cart", err))

@@ -24,7 +24,12 @@ func main() {
 		customerSvc = service.NewCustomerService(db)
 		adminSvc    = service.NewAdminService(db)
 	)
-	model.DB.AutoMigrate()
+	model.DB.AutoMigrate(
+		&model.Customer{}, &model.Admin{}, &model.Produk{},
+		&model.Keranjang{}, &model.Produk_Keranjang{}, &model.Produksi{},
+		&model.Produk_Produksi{}, &model.Pemesanan{}, &model.Admin_Pemesanan{},
+		&model.Feedback_Pemesanan{}, &model.Feedback{},
+	)
 	app := route.New(customerSvc, adminSvc)
 
 	app.Start(":" + PORT)
