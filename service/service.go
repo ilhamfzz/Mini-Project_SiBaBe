@@ -32,7 +32,7 @@ type AdminSvc interface {
 	GetAllProduct(c echo.Context) ([]model.Produk, error)
 	UpdateProduct(c echo.Context, id int, product model.Produk) (model.Produk, error)
 	DeleteProduct(c echo.Context, id int) (model.Produk, error)
-	GetMonthlyReport(c echo.Context) (model.Laporan_Bulanan_View, error)
+	GetMonthlyReport(c echo.Context) ([]model.Laporan_Bulanan_View, error)
 	CreateProduction(c echo.Context, production model.Produksi_Binding) (model.Produksi, error)
 	GetOrderList(c echo.Context) ([]model.Daftar_Pemesanan, error)
 	UpdateOrderStatus(c echo.Context, id int, status model.Update_Order_Status_Binding) (model.Pemesanan, error)

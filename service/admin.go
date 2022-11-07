@@ -29,12 +29,12 @@ func (as *adminService) LoginAdmin(c echo.Context, admin model.Admin) (dto.Login
 
 	err = as.connection.Where("username = ? AND password = ?", admin.Username, admin.Password).First(&admin).Error
 	if err != nil {
-		return login, errors.New("Username or Password is wrong")
+		return login, errors.New("username or Password is wrong")
 	}
 
 	login.Token, err = middleware.CreateToken(admin.Username, admin.Password)
 	if err != nil {
-		return login, errors.New("Failed to create token")
+		return login, errors.New("failed to create token")
 	}
 
 	login.Username = admin.Username
@@ -46,7 +46,7 @@ func (as *adminService) LoginAdmin(c echo.Context, admin model.Admin) (dto.Login
 func (as *adminService) CreateProduct(c echo.Context, product model.Produk) (model.Produk, error) {
 	err := as.connection.Create(&product).Error
 	if err != nil {
-		return product, errors.New("Failed to create product")
+		return product, errors.New("failed to create product")
 	}
 
 	return product, nil
@@ -60,7 +60,7 @@ func (as *adminService) GetAllProduct(c echo.Context) ([]model.Produk, error) {
 
 	err = as.connection.Find(&products).Error
 	if err != nil {
-		return products, errors.New("Failed to get all product")
+		return products, errors.New("failed to get all product")
 	}
 
 	return products, nil
@@ -74,7 +74,7 @@ func (as *adminService) UpdateProduct(c echo.Context, id int, product model.Prod
 
 	err = as.connection.Where("id = ?", id).First(&updatedProduct).Error
 	if err != nil {
-		return updatedProduct, errors.New("Failed to get product")
+		return updatedProduct, errors.New("failed to get product")
 	}
 
 	if product.Nama != "" {
@@ -93,7 +93,7 @@ func (as *adminService) UpdateProduct(c echo.Context, id int, product model.Prod
 
 	err = as.connection.Save(&updatedProduct).Error
 	if err != nil {
-		return updatedProduct, errors.New("Failed to update product")
+		return updatedProduct, errors.New("failed to update product")
 	}
 
 	return updatedProduct, nil
@@ -107,12 +107,12 @@ func (as *adminService) DeleteProduct(c echo.Context, id int) (model.Produk, err
 
 	err = as.connection.Where("id = ?", id).First(&product).Error
 	if err != nil {
-		return product, errors.New("Failed to get product")
+		return product, errors.New("failed to get product")
 	}
 
 	err = as.connection.Delete(&product).Error
 	if err != nil {
-		return product, errors.New("Failed to delete product")
+		return product, errors.New("failed to delete product")
 	}
 
 	return product, nil
@@ -161,15 +161,15 @@ func (as *adminService) GetMonthlyReport(c echo.Context) ([]model.Laporan_Bulana
 	return monthlyReport, nil
 }
 
-func (as *adminService) CreatePrduction(c echo.Context, production model.Produksi_Binding) (model.Produksi, error) {
+func (as *adminService) CreateProduction(c echo.Context, production model.Produksi_Binding) (model.Produksi, error) {
 	produksi := model.Produksi{
 		AdminUsername: middleware.ExtractTokenUsername(c),
-		JumlahBarang: production.JumlahBarang,
-		TotalBiaya: production.TotalBiaya,
+		JumlahBarang:  production.JumlahBarang,
+		TotalBiaya:    production.TotalBiaya,
 	}
 	err := as.connection.Create(&produksi).Error
 	if err != nil {
-		return model.Produksi{}, errors.New("Failed to create production")
+		return model.Produksi{}, errors.New("failed to create production")
 	}
 
 	return produksi, nil
@@ -184,7 +184,7 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Daftar_Pemesanan, 
 
 	err = as.connection.Where("status = ?", "Menunggu Validasi").Find(&orders).Error
 	if err != nil {
-		return result, errors.New("Failed to get order list")
+		return result, errors.New("failed to get order list")
 	}
 
 	for _, order := range orders {
@@ -196,7 +196,7 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Daftar_Pemesanan, 
 
 		err := as.connection.Where("id = ?", order.IdKeranjang).Find(&charts).Error
 		if err != nil {
-			return result, errors.New("Failed to produk from each order list")
+			return result, errors.New("failed to produk from each order list")
 		}
 
 		var products []model.Produk
@@ -204,7 +204,7 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Daftar_Pemesanan, 
 			var product model.Produk
 			err := as.connection.Where("id = ?", chart.IdProduk).Find(&product).Error
 			if err != nil {
-				return result, errors.New("Failed to get produk from each order list")
+				return result, errors.New("failed to get produk from each order list")
 			}
 			products = append(products, product)
 		}
@@ -231,7 +231,7 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Daftar_Pemesanan, 
 	return result, nil
 }
 
-func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status string) (model.Pemesanan, error) {
+func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.Update_Order_Status_Binding) (model.Pemesanan, error) {
 	var (
 		order model.Pemesanan
 		err   error
@@ -239,17 +239,16 @@ func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status string)
 
 	err = as.connection.Where("id = ?", id).First(&order).Error
 	if err != nil {
-		return order, errors.New("Failed to get order")
+		return order, errors.New("failed to get order")
 	}
 
-	if status == "Tolak" {
-		order.Status = status
-	} else if status == "Terima" {
-		order.Status = "Selesai"
+	order.Status = status.Status
+	if status.Status != "Terima" {
+		order.Status = "Tolak"
 	}
 	err = as.connection.Save(&order).Error
 	if err != nil {
-		return order, errors.New("Failed to update order status")
+		return order, errors.New("failed to update order status")
 	}
 
 	return order, nil
