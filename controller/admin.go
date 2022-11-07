@@ -89,16 +89,8 @@ func GetMonthlyReport(c echo.Context) error {
 	return c.JSON(http.StatusOK, dto.BuildResponse("Success get monthly report", result))
 }
 
-func GetYearlyReport(c echo.Context) error {
-	result, err := adminService.GetYearlyReport(c)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to get yearly report", err))
-	}
-	return c.JSON(http.StatusOK, dto.BuildResponse("Success get yearly report", result))
-}
-
 func CreatePrduction(c echo.Context) error {
-	production := model.Produksi{}
+	production := model.Produksi_Binding{}
 	if err := c.Bind(&production); err != nil {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
@@ -124,11 +116,8 @@ func UpdateOrderStatus(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
 
-	var status bool
-	status, err = strconv.ParseBool(c.Param("status"))
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
-	}
+	status := model.Update_Order_Status_Binding{}
+	err = c.Bind(&status)
 
 	result, err := adminService.UpdateOrderStatus(c, id, status)
 	if err != nil {

@@ -51,9 +51,8 @@ type Produk_Keranjang struct {
 }
 
 type Produksi struct {
-	Id            uint      `json:"id_produk"`
+	gorm.Model
 	AdminUsername string    `json:"admin_username"`
-	Tanggal       time.Time `json:"tanggal"`
 	JumlahBarang  uint      `json:"jumlah_barang"`
 	TotalBiaya    uint      `json:"total_biaya"`
 }

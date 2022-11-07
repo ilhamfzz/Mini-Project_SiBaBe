@@ -10,10 +10,10 @@ type Laporan_Keuangann struct {
 }
 
 type Daftar_Pemesanan struct {
-	IdPemesanan      uint           `json:"id_pemesanan"`
-	IdKeranjang      uint           `json:"id_keranjang"`
-	Status           string         `json:"status"`
-	Daftar_Pemesanan Keranjang_View `json:"daftar_pemesanan"`
+	IdPemesanan      uint          `json:"id_pemesanan"`
+	IdKeranjang      uint          `json:"id_keranjang"`
+	Status           string        `json:"status"`
+	Daftar_Pemesanan []Produk_View `json:"daftar_pemesanan"`
 }
 
 type Checkout_Binding struct {
@@ -93,11 +93,15 @@ type Produk_Pemesanan_View struct {
 
 type Laporan_Bulanan_View struct {
 	Bulan   string              `json:"bulan"`
-	Tahun   string              `json:"tahun"`
+	Tahun   int                 `json:"tahun"`
 	Laporan []Laporan_Keuangann `json:"laporan"`
 }
 
-type Laporan_Tahunan_View struct {
-	Tahun   string              `json:"tahun"`
-	Laporan []Laporan_Keuangann `json:"laporan"`
+type Update_Order_Status_Binding struct {
+	Status string `json:"status"`
+}
+
+type Produksi_Binding struct {
+	JumlahBarang uint `json:"jumlah_barang"`
+	TotalBiaya   uint `json:"total_biaya"`
 }
