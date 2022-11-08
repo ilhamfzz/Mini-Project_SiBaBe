@@ -278,6 +278,24 @@ func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.U
 				return order, errors.New("failed to update report")
 			}
 		}
+
+		var charts []model.Produk_Keranjang
+		err = as.connection.Where("id = ?", order.IdKeranjang).Find(&charts).Error
+		if err != nil {
+			return order, errors.New("failed to get chart")
+		}
+		for _, chart := range charts {
+			var product model.Produk
+			err = as.connection.Where("id = ?", chart.IdProduk).First(&product).Error
+			if err != nil {
+				return order, errors.New("failed to get product")
+			}
+			product.Stok = product.Stok - chart.JumlahProduk
+			err = as.connection.Save(&product).Error
+			if err != nil {
+				return order, errors.New("failed to update product stock")
+			}
+		}
 	}
 
 	admin_choice := model.Admin_Pemesanan{
