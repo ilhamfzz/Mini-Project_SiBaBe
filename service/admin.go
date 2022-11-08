@@ -164,8 +164,11 @@ func (as *adminService) CreateProduction(c echo.Context, production model.Produk
 	}
 
 	var report model.Laporan_Keuangann
-	err = as.connection.Where("tanggal = ?", produksi.CreatedAt).First(&report).Error
+	err = as.connection.Where("tanggal = ?", produksi.CreatedAt).Find(&report).Error
 	if err != nil {
+		return model.Produksi{}, errors.New("failed to get report")
+	}
+	if report.Tanggal != produksi.CreatedAt && report.TotalPemasukan == 0 && report.TotalPengeluaran == 0 {
 		report.Tanggal = produksi.CreatedAt
 		report.TotalPemasukan = 0
 		report.TotalPengeluaran = produksi.TotalBiaya
@@ -203,9 +206,9 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Daftar_Pemesanan, 
 			charts            []model.Produk_Keranjang
 		)
 
-		err := as.connection.Where("id = ?", order.IdKeranjang).Find(&charts).Error
+		err := as.connection.Where("id_keranjang = ?", order.IdKeranjang).Find(&charts).Error
 		if err != nil {
-			return result, errors.New("failed to produk from each order list")
+			return result, errors.New("failed get produk from each order list")
 		}
 
 		var products []model.Produk
@@ -255,6 +258,8 @@ func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.U
 	if status.Status != "Terima" {
 		order.Status = "Tolak"
 	}
+
+	order.DiValidasiOleh = middleware.ExtractTokenUsername(c)
 	err = as.connection.Save(&order).Error
 	if err != nil {
 		return order, errors.New("failed to update order status")
@@ -262,8 +267,11 @@ func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.U
 
 	if status.Status == "Terima" {
 		var report model.Laporan_Keuangann
-		err = as.connection.Where("tanggal = ?", order.UpdatedAt).First(&report).Error
+		err = as.connection.Where("tanggal = ?", order.UpdatedAt).Find(&report).Error
 		if err != nil {
+			return order, errors.New("failed to get report data")
+		}
+		if report.Tanggal != order.UpdatedAt && report.TotalPemasukan == 0 && report.TotalPengeluaran == 0 {
 			report.Tanggal = order.UpdatedAt
 			report.TotalPemasukan = order.TotalHarga
 			report.TotalPengeluaran = 0
@@ -280,7 +288,7 @@ func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.U
 		}
 
 		var charts []model.Produk_Keranjang
-		err = as.connection.Where("id = ?", order.IdKeranjang).Find(&charts).Error
+		err = as.connection.Where("id_keranjang = ?", order.IdKeranjang).Find(&charts).Error
 		if err != nil {
 			return order, errors.New("failed to get chart")
 		}

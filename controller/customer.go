@@ -109,6 +109,9 @@ func UpdateProductFromCartMinus(c echo.Context) error {
 
 	result, err := customerService.UpdateProductFromCartMinus(c, id)
 	if err != nil {
+		if err.Error() == "produk berhasil dihapus dari keranjang" {
+			return c.JSON(http.StatusOK, dto.BuildResponse("Success update product from cart minus", err.Error()))
+		}
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to update product from cart minus", err))
 	}
 	return c.JSON(http.StatusOK, dto.BuildResponse("Success update product from cart minus", result))
@@ -143,7 +146,7 @@ func ConfirmPayment(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to confirm payment", err))
 	}
-	return c.JSON(http.StatusOK, dto.BuildResponse("Success send payment confirmation", nil))
+	return c.JSON(http.StatusOK, dto.BuildResponse("Success send payment confirmation", payment))
 }
 
 func GetHistory(c echo.Context) error {
@@ -173,7 +176,7 @@ func PostFeedback(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
 
-	err = customerService.CreatFeedbackPemesanan(c, uint(id))
+	err = customerService.CreateFeedbackPemesanan(c, uint(id))
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to create feedback", err))
 	}
@@ -184,6 +187,7 @@ func PostFeedback(c echo.Context) error {
 	}
 
 	var feedback model.Feedback
+	feedback.IdProduk = uint(id_produk)
 	if err := c.Bind(&feedback); err != nil {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}

@@ -19,6 +19,7 @@ type Payment_Binding struct {
 type Checkout struct {
 	Alamat      string         `json:"alamat"`
 	Kurir       string         `json:"kurir"`
+	OngkosKirim uint           `json:"ongkos_kirim"`
 	Total_Harga uint           `json:"total_harga"`
 	Keranjang   Keranjang_View `json:"keranjang"`
 }
@@ -93,7 +94,6 @@ type Update_Order_Status_Binding struct {
 }
 
 type Produksi_Binding struct {
-	NamaProduk   string `json:"nama_produk"`
-	JumlahBarang uint   `json:"jumlah_barang"`
-	TotalBiaya   uint   `json:"total_biaya"`
+	NamaProduk string `json:"nama_produk"`
+	TotalBiaya uint   `json:"total_biaya"`
 }

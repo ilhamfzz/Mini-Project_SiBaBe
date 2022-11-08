@@ -22,7 +22,7 @@ type CustomerSvc interface {
 	ConfirmPayment(c echo.Context, payment model.Payment_Binding) error
 	GetHistory(c echo.Context) (model.History_View, error)
 	GetHistoryDetail(c echo.Context, id int) (model.Detail_History_View, error)
-	CreatFeedbackPemesanan(c echo.Context, id uint) error
+	CreateFeedbackPemesanan(c echo.Context, id uint) error
 	PostFeedback(c echo.Context, feedback model.Feedback) (model.Feedback_View, error)
 }
 

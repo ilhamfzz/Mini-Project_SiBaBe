@@ -69,15 +69,8 @@ func (cs *customerService) GetProductById(c echo.Context, id int) (model.Detail_
 		feedbackView = append(feedbackView, model.Feedback_View{
 			Username: feedbackPemesanan.Username,
 			IdProduk: uint(id),
+			Feedback: f,
 		})
-	}
-
-	for _, f := range feedbackView {
-		for _, f2 := range feedback {
-			if f2.IdProduk == f.IdProduk {
-				f.Feedback = f2
-			}
-		}
 	}
 
 	productView.DaftarFeedback = feedbackView
@@ -125,8 +118,11 @@ func (cs *customerService) PostProductToCart(c echo.Context, id int) (model.Prod
 	}
 
 	var chart model.Keranjang
-	err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").First(&chart).Error
+	err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").Find(&chart).Error
 	if err != nil {
+		return model.Produk_Keranjang{}, errors.New("keranjang tidak ditemukan")
+	}
+	if chart.ID == 0 && chart.Username == "" && chart.TotalHarga == 0 && chart.Status == "" {
 		chart, err = cs.CreateChart(c)
 		if err != nil {
 			return model.Produk_Keranjang{}, errors.New("gagal membuat keranjang")
@@ -134,8 +130,11 @@ func (cs *customerService) PostProductToCart(c echo.Context, id int) (model.Prod
 	}
 
 	var productFromChart model.Produk_Keranjang
-	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).First(&productFromChart).Error
+	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).Find(&productFromChart).Error
 	if err != nil {
+		return model.Produk_Keranjang{}, errors.New("produk tidak ditemukan di keranjang")
+	}
+	if productFromChart.IdProduk == 0 && productFromChart.IdKeranjang == 0 && productFromChart.JumlahProduk == 0 && productFromChart.TotalHarga == 0 {
 		productFromChart.IdProduk = product.ID
 		productFromChart.IdKeranjang = chart.ID
 		productFromChart.JumlahProduk = 1
@@ -164,8 +163,11 @@ func (cs *customerService) PostProductToCart(c echo.Context, id int) (model.Prod
 
 func (cs *customerService) GetCart(c echo.Context) (model.Keranjang_View, error) {
 	var chart model.Keranjang
-	err := cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").First(&chart).Error
+	err := cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").Find(&chart).Error
 	if err != nil {
+		return model.Keranjang_View{}, errors.New("keranjang tidak ditemukan")
+	}
+	if chart.ID == 0 && chart.Username == "" && chart.TotalHarga == 0 && chart.Status == "" {
 		return model.Keranjang_View{}, errors.New("tidak ada barang di keranjang")
 	}
 	var jumlah_barang uint = 0
@@ -274,24 +276,25 @@ func (cs *customerService) UpdateProductFromCartMinus(c echo.Context, id int) (m
 		return model.Produk_Keranjang{}, errors.New("produk tidak ditemukan di keranjang")
 	}
 
-	if productFromChart.JumlahProduk == 1 {
-		err = cs.connection.Delete(&productFromChart).Error
-		if err != nil {
-			return model.Produk_Keranjang{}, errors.New("gagal menghapus produk dari keranjang")
-		}
-	} else {
-		productFromChart.JumlahProduk = productFromChart.JumlahProduk - 1
-		productFromChart.TotalHarga = productFromChart.TotalHarga - product.Harga
-		err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).Updates(&productFromChart).Error
-		if err != nil {
-			return model.Produk_Keranjang{}, errors.New("gagal mengurangi produk dari keranjang")
-		}
+	productFromChart.JumlahProduk = productFromChart.JumlahProduk - 1
+	productFromChart.TotalHarga = productFromChart.TotalHarga - product.Harga
+	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).Updates(&productFromChart).Error
+	if err != nil {
+		return model.Produk_Keranjang{}, errors.New("gagal mengurangi produk dari keranjang")
 	}
 
 	chart.TotalHarga = chart.TotalHarga - product.Harga
 	err = cs.connection.Save(&chart).Error
 	if err != nil {
 		return model.Produk_Keranjang{}, errors.New("gagal update total harga keranjang")
+	}
+
+	if productFromChart.JumlahProduk == 0 {
+		err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).Delete(&productFromChart).Error
+		if err != nil {
+			return model.Produk_Keranjang{}, errors.New("gagal menghapus produk dari keranjang")
+		}
+		return model.Produk_Keranjang{}, errors.New("produk berhasil dihapus dari keranjang")
 	}
 
 	return productFromChart, nil
@@ -335,6 +338,7 @@ func (cs *customerService) ConfirmCheckout(c echo.Context, checkout_data model.C
 		checkout.Alamat = customer_data.Alamat
 	}
 	checkout.Kurir = checkout_data.Kurir
+	checkout.OngkosKirim = 25000
 	checkout.Total_Harga = chart.TotalHarga + 25000
 	checkout.Keranjang = chart
 
@@ -364,7 +368,7 @@ func (cs *customerService) ConfirmCheckout(c echo.Context, checkout_data model.C
 
 func (cs *customerService) ConfirmPayment(c echo.Context, payment_data model.Payment_Binding) error {
 	var pemesanan model.Pemesanan
-	err := cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Dibayar").First(&pemesanan).Error
+	err := cs.connection.Where("customer_username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Dibayar").First(&pemesanan).Error
 	if err != nil {
 		return errors.New("pemesanan tidak ditemukan")
 	}
@@ -449,14 +453,25 @@ func (cs *customerService) GetHistoryDetail(c echo.Context, id_pemesanan int) (m
 	return result, nil
 }
 
-func (cs *customerService) CreatFeedbackPemesanan(c echo.Context, id uint) error {
+func (cs *customerService) CreateFeedbackPemesanan(c echo.Context, id uint) error {
 	var pemesanan model.Pemesanan
 	err := cs.connection.Where("id = ? AND customer_username = ?", id, middleware.ExtractTokenUsername(c)).First(&pemesanan).Error
 	if err != nil {
 		return errors.New("pemesanan tidak ditemukan")
 	}
 
+	var feedback_Id []model.Feedback
+	err = cs.connection.Find(&feedback_Id).Error
+	if err != nil {
+		return errors.New("gagal mendapatkan id feedback")
+	}
+
 	var feedback model.Feedback_Pemesanan
+	if len(feedback_Id) == 0 {
+		feedback.IdFeedback = 1
+	} else {
+		feedback.IdFeedback = feedback_Id[len(feedback_Id)-1].ID + 1
+	}
 	feedback.IdPemesanan = pemesanan.ID
 	feedback.Tanggal = time.Now()
 	err = cs.connection.Create(&feedback).Error
@@ -474,6 +489,7 @@ func (cs *customerService) PostFeedback(c echo.Context, feedback_data model.Feed
 
 	var feedback_view model.Feedback_View
 	feedback_view.Username = middleware.ExtractTokenUsername(c)
+	feedback_view.IdProduk = feedback_data.IdProduk
 	feedback_view.Feedback = feedback_data
 	return feedback_view, nil
 }
