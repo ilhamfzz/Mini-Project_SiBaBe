@@ -52,16 +52,8 @@ type Produk_Keranjang struct {
 
 type Produksi struct {
 	gorm.Model
-	AdminUsername string    `json:"admin_username"`
-	JumlahBarang  uint      `json:"jumlah_barang"`
-	TotalBiaya    uint      `json:"total_biaya"`
-}
-
-type Produk_Produksi struct {
-	IdProduk     uint `json:"id_produk"`
-	IdProduksi   uint `json:"id_produksi"`
-	JumlahProduk uint `json:"jumlah_produk"`
-	TotalBiaya   uint `json:"total_biaya"`
+	AdminUsername string `json:"admin_username"`
+	TotalBiaya    uint   `json:"total_biaya"`
 }
 
 type Pemesanan struct {
@@ -78,9 +70,10 @@ type Pemesanan struct {
 }
 
 type Admin_Pemesanan struct {
-	IdPemesanan     uint      `json:"id_pemesanan"`
-	UsernameAdmin   string    `json:"username_admin"`
-	TanggalValidasi time.Time `json:"tanggal_validasi"`
+	IdPemesanan         uint      `json:"id_pemesanan"`
+	UsernameAdmin       string    `json:"username_admin"`
+	UpdateStatusOrderTo string    `json:"update_status_order_to"`
+	TanggalValidasi     time.Time `json:"tanggal_validasi"`
 }
 
 type Feedback_Pemesanan struct {
@@ -95,4 +88,10 @@ type Feedback struct {
 	IdProduk    uint   `json:"id_produk"`
 	IsiFeedback string `json:"isi_feedback"`
 	Rating      uint   `json:"rating"`
+}
+
+type Laporan_Keuangann struct {
+	Tanggal          time.Time `json:"tanggal"`
+	TotalPemasukan   uint      `json:"total_pemasukan"`
+	TotalPengeluaran uint      `json:"total_pengeluaran"`
 }

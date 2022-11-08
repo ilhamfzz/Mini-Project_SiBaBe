@@ -84,6 +84,9 @@ func DeleteProduct(c echo.Context) error {
 func GetMonthlyReport(c echo.Context) error {
 	result, err := adminService.GetMonthlyReport(c)
 	if err != nil {
+		if err.Error() == "no report found this year" {
+			return c.JSON(http.StatusNotFound, dto.BuildErrorResponse("No report found this year", err))
+		}
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to get monthly report", err))
 	}
 	return c.JSON(http.StatusOK, dto.BuildResponse("Success get monthly report", result))
@@ -117,7 +120,9 @@ func UpdateOrderStatus(c echo.Context) error {
 	}
 
 	status := model.Update_Order_Status_Binding{}
-	err = c.Bind(&status)
+	if err = c.Bind(&status); err != nil {
+		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
+	}
 
 	result, err := adminService.UpdateOrderStatus(c, id, status)
 	if err != nil {

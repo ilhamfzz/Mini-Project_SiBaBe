@@ -51,15 +51,17 @@ func InitDatabaseTest() *gorm.DB {
 
 	model.DB.Migrator().DropTable(
 		&model.Customer{}, &model.Admin{}, &model.Produk{},
-		&model.Keranjang{}, &model.Produk_Keranjang{}, &model.Produksi{},
-		&model.Produk_Produksi{}, &model.Pemesanan{}, &model.Admin_Pemesanan{},
-		&model.Feedback_Pemesanan{}, &model.Feedback{},
+		&model.Keranjang{}, &model.Produk_Keranjang{},
+		&model.Produksi{}, &model.Pemesanan{},
+		&model.Admin_Pemesanan{}, &model.Feedback_Pemesanan{},
+		&model.Feedback{}, &model.Laporan_Keuangann{},
 	)
 	model.DB.AutoMigrate(
 		&model.Customer{}, &model.Admin{}, &model.Produk{},
-		&model.Keranjang{}, &model.Produk_Keranjang{}, &model.Produksi{},
-		&model.Produk_Produksi{}, &model.Pemesanan{}, &model.Admin_Pemesanan{},
-		&model.Feedback_Pemesanan{}, &model.Feedback{},
+		&model.Keranjang{}, &model.Produk_Keranjang{},
+		&model.Produksi{}, &model.Pemesanan{},
+		&model.Admin_Pemesanan{}, &model.Feedback_Pemesanan{},
+		&model.Feedback{}, &model.Laporan_Keuangann{},
 	)
 
 	return model.DB

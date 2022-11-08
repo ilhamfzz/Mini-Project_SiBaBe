@@ -1,13 +1,5 @@
 package model
 
-import "time"
-
-type Laporan_Keuangann struct {
-	Tanggal          time.Time `json:"tanggal"`
-	TotalPemasukan   uint      `json:"total_pemasukan"`
-	TotalPengeluaran uint      `json:"total_pengeluaran"`
-}
-
 type Daftar_Pemesanan struct {
 	IdPemesanan      uint          `json:"id_pemesanan"`
 	IdKeranjang      uint          `json:"id_keranjang"`
@@ -101,6 +93,7 @@ type Update_Order_Status_Binding struct {
 }
 
 type Produksi_Binding struct {
-	JumlahBarang uint `json:"jumlah_barang"`
-	TotalBiaya   uint `json:"total_biaya"`
+	NamaProduk   string `json:"nama_produk"`
+	JumlahBarang uint   `json:"jumlah_barang"`
+	TotalBiaya   uint   `json:"total_biaya"`
 }

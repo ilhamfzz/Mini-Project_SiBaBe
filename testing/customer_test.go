@@ -11,9 +11,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/golang-jwt/jwt"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -194,18 +194,6 @@ func TestLoginUser(t *testing.T) {
 	}
 }
 
-func CreateUnlimitedToken() string {
-	claims := jwt.MapClaims{
-		"username": "test",
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
-	if err != nil {
-		panic(err)
-	}
-	return tokenString
-}
-
 func InsertDataCart() {
 	cart := model.Keranjang{
 		Username:   "test",
@@ -231,6 +219,7 @@ func InsertDataProductToCart() {
 	}
 }
 
+// kendala mulai dari sini
 func TestPostProductToCart(t *testing.T) {
 	testCase := []struct {
 		Name         string
@@ -240,7 +229,7 @@ func TestPostProductToCart(t *testing.T) {
 	}{
 		{
 			Name:         "sucessfully post product to cart",
-			Path:         "/customer/jwt/product/1",
+			Path:         "/customer/jwt/product-to-cart/1",
 			ExpectedCode: http.StatusOK,
 			SizeData:     1,
 		},
@@ -251,13 +240,13 @@ func TestPostProductToCart(t *testing.T) {
 	InsertDataProduct()
 	InsertDataCart()
 	InsertDataProductToCart()
-	token := CreateUnlimitedToken()
-	req := httptest.NewRequest(http.MethodPost, "/", nil)
-	req.Header.Set("Authorization", "Bearer "+token)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	e.Use(middleware.JWT([]byte(os.Getenv("JWT_SECRET"))))
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1hIjoiIiwidXNlcm5hbWUiOiJ0ZXN0In0.MBgzq4cnyZ9w-JC_Xji2Hss_-IEWbe-XbEI9Cg_qVT0"
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set(echo.HeaderAuthorization, "Bearer "+token)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
-	c.SetPath("/customer/jwt/product/:id")
+	c.SetPath("/customer/jwt/product-to-cart/:id")
 	c.SetParamNames("id")
 	c.SetParamValues("1")
 

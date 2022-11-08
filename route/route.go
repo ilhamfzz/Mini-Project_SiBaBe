@@ -58,5 +58,3 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 
 	return e
 }
-
-// get resolve for empy order calling for montly report

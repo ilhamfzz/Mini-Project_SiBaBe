@@ -80,6 +80,7 @@ CREATE TABLE Admin_Pemesanan(
     adm_username VARCHAR(16) NOT NULL,
     pmsn_id CHAR(6) NOT NULL,
     ap_tanggal DATE NOT NULL,
+    ap_update_status_to VARCHAR(16) NOT NULL,
     FOREIGN KEY (adm_username) REFERENCES Admin(adm_username),
     FOREIGN KEY (pmsn_id) REFERENCES Pemesanan(pmsn_id)
 );
@@ -88,16 +89,14 @@ CREATE TABLE Produksi(
     pr_id CHAR(6) PRIMARY KEY,
     adm_username VARCHAR(16) NOT NULL,
     pr_tanggal DATE NOT NULL,
-    pr_jumlah_barang INTEGER NOT NULL,
     pr_total_biaya INTEGER NOT NULL,
     FOREIGN KEY (adm_username) REFERENCES Admin(adm_username)
 );
 
-CREATE TABLE Produk_Produksi(
-    p_id CHAR(6) NOT NULL,
-    pr_id CHAR(6) NOT NULL,
-    ppr_jumlah INTEGER NOT NULL,
-    ppr_biaya INTEGER NOT NULL,
-    FOREIGN KEY (p_id) REFERENCES Produk(p_id),
-    FOREIGN KEY (pr_id) REFERENCES Produksi(pr_id)
+CREATE TABLE Laporan_Keuangan(
+    lk_tanggal DATE PRIMARY KEY,
+    lk_total_pemasukan INTEGER NOT NULL,
+    lk_total_pengeluaran INTEGER NOT NULL,
+    FOREIGN KEY (lk_tanggal) REFERENCES Produksi(pr_tanggal),
+    FOREIGN KEY (lk_tanggal) REFERENCES Admin_Pemesanan(ap_tanggal)
 );

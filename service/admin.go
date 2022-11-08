@@ -122,63 +122,32 @@ func (as *adminService) DeleteProduct(c echo.Context, id int) (model.Produk, err
 
 func (as *adminService) GetMonthlyReport(c echo.Context) ([]model.Laporan_Bulanan_View, error) {
 	var (
-		monthlyReport  []model.Laporan_Bulanan_View
-		pemesanan      []model.Pemesanan
-		produksi       []model.Produksi
-		flag_pemesanan bool = false
-		flag_produksi  bool = false
+		monthlyReport []model.Laporan_Bulanan_View
+		allReport     []model.Laporan_Keuangann
+		err           error
 	)
 
-	if err := as.connection.Where("status = ?", "Selesai").Find(&pemesanan); err != nil {
-		flag_pemesanan = true
-	}
-	if err := as.connection.Find(&produksi); err != nil {
-		flag_produksi = true
+	err = as.connection.Find(&allReport).Error
+	if err != nil {
+		return monthlyReport, errors.New("no report found this year")
 	}
 
-	if flag_pemesanan && flag_produksi {
-		return monthlyReport, errors.New("no order and prodction data")
-	}
-
-	for i := 0; i < 12; i++ {
+	for i := 1; i <= 12; i++ {
 		var (
-			monthReport model.Laporan_Bulanan_View
-			Report      []model.Laporan_Keuangann
-			month       time.Month
+			monthlyReportTemp model.Laporan_Bulanan_View
+			singleReport      []model.Laporan_Keuangann
 		)
 
-		month = time.Month(i + 1)
-		monthReport.Bulan = month.String()
-		monthReport.Tahun = time.Now().Year()
-
-		if flag_pemesanan && !flag_produksi {
-			var singleReport model.Laporan_Keuangann
-			for _, produksi := range produksi {
-				if produksi.CreatedAt.Month() == month {
-					singleReport.TotalPengeluaran = singleReport.TotalPengeluaran + produksi.TotalBiaya
-				}
-			}
-			Report = append(Report, singleReport)
-		}
-		if !flag_pemesanan {
-			for _, pemesanan := range pemesanan {
-				if pemesanan.UpdatedAt.Month() == month {
-					var singleReport model.Laporan_Keuangann
-					singleReport.Tanggal = pemesanan.UpdatedAt
-					singleReport.TotalPemasukan = pemesanan.TotalHarga
-					singleReport.TotalPengeluaran = 0
-					for _, produksi := range produksi {
-						if produksi.CreatedAt.Year() == pemesanan.UpdatedAt.Year() && produksi.CreatedAt.Month() == pemesanan.UpdatedAt.Month() && produksi.CreatedAt.Day() == pemesanan.UpdatedAt.Day() {
-							singleReport.TotalPengeluaran = produksi.TotalBiaya
-						}
-					}
-					Report = append(Report, singleReport)
-				}
+		for _, report := range allReport {
+			if report.Tanggal.Month() == time.Month(i) && report.Tanggal.Year() == time.Now().Year() {
+				monthlyReportTemp.Bulan = report.Tanggal.Month().String()
+				monthlyReportTemp.Tahun = report.Tanggal.Year()
+				singleReport = append(singleReport, report)
 			}
 		}
 
-		monthReport.Laporan = Report
-		monthlyReport = append(monthlyReport, monthReport)
+		monthlyReportTemp.Laporan = singleReport
+		monthlyReport = append(monthlyReport, monthlyReportTemp)
 	}
 
 	return monthlyReport, nil
@@ -187,12 +156,29 @@ func (as *adminService) GetMonthlyReport(c echo.Context) ([]model.Laporan_Bulana
 func (as *adminService) CreateProduction(c echo.Context, production model.Produksi_Binding) (model.Produksi, error) {
 	produksi := model.Produksi{
 		AdminUsername: middleware.ExtractTokenUsername(c),
-		JumlahBarang:  production.JumlahBarang,
 		TotalBiaya:    production.TotalBiaya,
 	}
 	err := as.connection.Create(&produksi).Error
 	if err != nil {
 		return model.Produksi{}, errors.New("failed to create production")
+	}
+
+	var report model.Laporan_Keuangann
+	err = as.connection.Where("tanggal = ?", produksi.CreatedAt).First(&report).Error
+	if err != nil {
+		report.Tanggal = produksi.CreatedAt
+		report.TotalPemasukan = 0
+		report.TotalPengeluaran = produksi.TotalBiaya
+		err = as.connection.Create(&report).Error
+		if err != nil {
+			return model.Produksi{}, errors.New("failed to create report")
+		}
+	} else {
+		report.TotalPengeluaran = report.TotalPengeluaran + produksi.TotalBiaya
+		err = as.connection.Save(&report).Error
+		if err != nil {
+			return model.Produksi{}, errors.New("failed to update report")
+		}
 	}
 
 	return produksi, nil
@@ -272,6 +258,37 @@ func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.U
 	err = as.connection.Save(&order).Error
 	if err != nil {
 		return order, errors.New("failed to update order status")
+	}
+
+	if status.Status == "Terima" {
+		var report model.Laporan_Keuangann
+		err = as.connection.Where("tanggal = ?", order.UpdatedAt).First(&report).Error
+		if err != nil {
+			report.Tanggal = order.UpdatedAt
+			report.TotalPemasukan = order.TotalHarga
+			report.TotalPengeluaran = 0
+			err = as.connection.Create(&report).Error
+			if err != nil {
+				return order, errors.New("failed to create report")
+			}
+		} else {
+			report.TotalPemasukan = report.TotalPemasukan + order.TotalHarga
+			err = as.connection.Save(&report).Error
+			if err != nil {
+				return order, errors.New("failed to update report")
+			}
+		}
+	}
+
+	admin_choice := model.Admin_Pemesanan{
+		IdPemesanan:         order.ID,
+		UsernameAdmin:       middleware.ExtractTokenUsername(c),
+		UpdateStatusOrderTo: order.Status,
+		TanggalValidasi:     order.UpdatedAt,
+	}
+	err = as.connection.Create(&admin_choice).Error
+	if err != nil {
+		return order, errors.New("failed to create log admin choice")
 	}
 
 	return order, nil
