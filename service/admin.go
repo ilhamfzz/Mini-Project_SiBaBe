@@ -155,7 +155,7 @@ func (as *adminService) GetMonthlyReport(c echo.Context) ([]model.Laporan_Bulana
 			var singleReport model.Laporan_Keuangann
 			for _, produksi := range produksi {
 				if produksi.CreatedAt.Month() == month {
-					singleReport.TotalPengeluaran += produksi.TotalBiaya
+					singleReport.TotalPengeluaran = singleReport.TotalPengeluaran + produksi.TotalBiaya
 				}
 			}
 			Report = append(Report, singleReport)

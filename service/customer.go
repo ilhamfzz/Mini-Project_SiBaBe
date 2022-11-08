@@ -145,15 +145,15 @@ func (cs *customerService) PostProductToCart(c echo.Context, id int) (model.Prod
 			return model.Produk_Keranjang{}, errors.New("gagal menambahkan produk ke keranjang baru")
 		}
 	} else {
-		productFromChart.JumlahProduk += 1
-		productFromChart.TotalHarga += product.Harga
-		err = cs.connection.Save(&productFromChart).Error
+		productFromChart.JumlahProduk = productFromChart.JumlahProduk + 1
+		productFromChart.TotalHarga = productFromChart.TotalHarga + product.Harga
+		err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).Updates(&productFromChart).Error
 		if err != nil {
 			return model.Produk_Keranjang{}, errors.New("gagal menambahkan produk ke keranjang lama")
 		}
 	}
 
-	chart.TotalHarga += product.Harga
+	chart.TotalHarga = chart.TotalHarga + product.Harga
 	err = cs.connection.Save(&chart).Error
 	if err != nil {
 		return model.Produk_Keranjang{}, errors.New("gagal update total harga keranjang")
@@ -182,7 +182,7 @@ func (cs *customerService) GetCart(c echo.Context) (model.Keranjang_View, error)
 			JumlahProduk: produk_keranjang.JumlahProduk,
 			TotalHarga:   produk_keranjang.TotalHarga,
 		})
-		jumlah_barang += produk_keranjang.JumlahProduk
+		jumlah_barang = jumlah_barang + produk_keranjang.JumlahProduk
 	}
 
 	var result_produk_view []model.Produk_View
@@ -239,14 +239,14 @@ func (cs *customerService) UpdateProductFromCartPlus(c echo.Context, id int) (mo
 		return model.Produk_Keranjang{}, errors.New("produk tidak ditemukan di keranjang")
 	}
 
-	productFromChart.JumlahProduk += 1
-	productFromChart.TotalHarga += product.Harga
-	err = cs.connection.Save(&productFromChart).Error
+	productFromChart.JumlahProduk = productFromChart.JumlahProduk + 1
+	productFromChart.TotalHarga = productFromChart.TotalHarga + product.Harga
+	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).Updates(&productFromChart).Error
 	if err != nil {
 		return model.Produk_Keranjang{}, errors.New("gagal menambahkan produk ke keranjang")
 	}
 
-	chart.TotalHarga += product.Harga
+	chart.TotalHarga = chart.TotalHarga + product.Harga
 	err = cs.connection.Save(&chart).Error
 	if err != nil {
 		return model.Produk_Keranjang{}, errors.New("gagal update total harga keranjang")
@@ -280,15 +280,15 @@ func (cs *customerService) UpdateProductFromCartMinus(c echo.Context, id int) (m
 			return model.Produk_Keranjang{}, errors.New("gagal menghapus produk dari keranjang")
 		}
 	} else {
-		productFromChart.JumlahProduk -= 1
-		productFromChart.TotalHarga -= product.Harga
-		err = cs.connection.Save(&productFromChart).Error
+		productFromChart.JumlahProduk = productFromChart.JumlahProduk - 1
+		productFromChart.TotalHarga = productFromChart.TotalHarga - product.Harga
+		err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).Updates(&productFromChart).Error
 		if err != nil {
 			return model.Produk_Keranjang{}, errors.New("gagal mengurangi produk dari keranjang")
 		}
 	}
 
-	chart.TotalHarga -= product.Harga
+	chart.TotalHarga = chart.TotalHarga - product.Harga
 	err = cs.connection.Save(&chart).Error
 	if err != nil {
 		return model.Produk_Keranjang{}, errors.New("gagal update total harga keranjang")

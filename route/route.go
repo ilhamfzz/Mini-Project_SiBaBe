@@ -27,10 +27,12 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 	eJwt := eCust.Group("/jwt")
 	eJwt.Use(mid.JWT([]byte(os.Getenv("SECRET_JWT"))))
 	// Routing User with JWT
-	eJwt.POST("/product/:id", controller.PostProductToCart)
+	eJwt.GET("/products", controller.GetAllProduct)
+	eJwt.GET("/product/:id", controller.GetProductById)
+	eJwt.GET("/product-to-cart/:id", controller.PostProductToCart)
 	eJwt.GET("/cart", controller.GetCart)
-	eJwt.GET("/chart/product/:id", controller.UpdateProductFromCartPlus)
-	eJwt.GET("/chart/product/:id", controller.UpdateProductFromCartMinus)
+	eJwt.GET("/cart/plus/:id", controller.UpdateProductFromCartPlus)
+	eJwt.GET("/cart/minus/:id", controller.UpdateProductFromCartMinus)
 	eJwt.GET("/checkout", controller.Checkout)
 	eJwt.POST("/checkout/confrim", controller.ConfirmCheckout)
 	eJwt.POST("/checkout/confirm/payment", controller.ConfirmPayment)
@@ -56,3 +58,5 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 
 	return e
 }
+
+// get resolve for empy order calling for montly report
