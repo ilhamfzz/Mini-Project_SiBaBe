@@ -92,7 +92,7 @@ func GetMonthlyReport(c echo.Context) error {
 	return c.JSON(http.StatusOK, dto.BuildResponse("Success get monthly report", result))
 }
 
-func CreatePrduction(c echo.Context) error {
+func CreateProduction(c echo.Context) error {
 	production := model.Produksi_Binding{}
 	if err := c.Bind(&production); err != nil {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))

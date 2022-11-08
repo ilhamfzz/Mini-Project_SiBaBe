@@ -52,7 +52,7 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 	eJwtAdmin.PUT("/product/:id", controller.UpdateProduct)
 	eJwtAdmin.DELETE("/product/:id", controller.DeleteProduct)
 	eJwtAdmin.GET("/report/monthly", controller.GetMonthlyReport)
-	eJwtAdmin.POST("/production", controller.CreatePrduction)
+	eJwtAdmin.POST("/production", controller.CreateProduction)
 	eJwtAdmin.GET("/order-list", controller.GetOrderList)
 	eJwtAdmin.POST("/order-list/:id", controller.UpdateOrderStatus)
 
