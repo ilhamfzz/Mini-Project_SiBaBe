@@ -368,8 +368,11 @@ func (cs *customerService) ConfirmCheckout(c echo.Context, checkout_data model.C
 
 func (cs *customerService) ConfirmPayment(c echo.Context, payment_data model.Payment_Binding) error {
 	var pemesanan model.Pemesanan
-	err := cs.connection.Where("customer_username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Dibayar").First(&pemesanan).Error
+	err := cs.connection.Where("customer_username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Dibayar").Find(&pemesanan).Error
 	if err != nil {
+		return errors.New("pemesanan tidak ditemukan")
+	}
+	if pemesanan.IdKeranjang == 0 && pemesanan.CustomerUsername == "" {
 		return errors.New("pemesanan tidak ditemukan")
 	}
 
