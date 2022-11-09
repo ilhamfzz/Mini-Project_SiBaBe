@@ -476,6 +476,7 @@ func (cs *customerService) CreateFeedbackPemesanan(c echo.Context, id uint) erro
 		feedback.IdFeedback = feedback_Id[len(feedback_Id)-1].ID + 1
 	}
 	feedback.IdPemesanan = pemesanan.ID
+	feedback.Username = middleware.ExtractTokenUsername(c)
 	feedback.Tanggal = time.Now()
 	err = cs.connection.Create(&feedback).Error
 	if err != nil {
