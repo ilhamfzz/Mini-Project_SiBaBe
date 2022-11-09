@@ -2,7 +2,7 @@ package dto
 
 type Response struct {
 	Message string `json:"message"`
-	Errors  any    `json:"errors"`
+	Errors  any    `json:"errors, omitempty"`
 	Data    any    `json:"data"`
 }
 
@@ -24,6 +24,6 @@ func BuildErrorResponse(message string, err error) Response {
 
 type Login struct {
 	Username string `json:"username"`
-	Nama string `json:"nama"`
-	Token string `json:"token"`
+	Nama     string `json:"nama"`
+	Token    string `json:"token"`
 }
