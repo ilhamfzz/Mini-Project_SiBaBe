@@ -21,15 +21,15 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 	eCust := e.Group("/customer")
 	eCust.POST("/register", controller.CreateUser)
 	eCust.GET("/products", controller.GetAllProduct)
-	eCust.GET("/product/:id", controller.GetProductById)
+	eCust.GET("/products/:id", controller.GetProductById)
 	eCust.POST("/login", controller.LoginUser)
 
 	eJwt := eCust.Group("/jwt")
 	eJwt.Use(mid.JWT([]byte(os.Getenv("SECRET_JWT"))))
 	// Routing User with JWT
 	eJwt.GET("/products", controller.GetAllProduct)
-	eJwt.GET("/product/:id", controller.GetProductById)
-	eJwt.GET("/product-to-cart/:id", controller.PostProductToCart)
+	eJwt.GET("/products/:id", controller.GetProductById)
+	eJwt.GET("/products/add/:id", controller.PostProductToCart)
 	eJwt.GET("/cart", controller.GetCart)
 	eJwt.GET("/cart/plus/:id", controller.UpdateProductFromCartPlus)
 	eJwt.GET("/cart/minus/:id", controller.UpdateProductFromCartMinus)
@@ -47,19 +47,19 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 	eJwtAdmin := eAdmin.Group("/jwt")
 	eJwtAdmin.Use(mid.JWT([]byte(os.Getenv("SECRET_JWT"))))
 	// Routing Admin with JWT
-	eJwtAdmin.POST("/product", controller.CreateProduct)
+	eJwtAdmin.POST("/products", controller.CreateProduct)
 	eJwtAdmin.GET("/products", controller.GetAllProductAdmin)
-	eJwtAdmin.PUT("/product/:id", controller.UpdateProduct)
-	eJwtAdmin.DELETE("/product/:id", controller.DeleteProduct)
+	eJwtAdmin.PUT("/products/:id", controller.UpdateProduct)
+	eJwtAdmin.DELETE("/products/:id", controller.DeleteProduct)
 	eJwtAdmin.GET("/report/monthly", controller.GetMonthlyReport)
 	eJwtAdmin.POST("/production", controller.CreateProduction)
-	eJwtAdmin.GET("/order-list", controller.GetOrderList)
-	eJwtAdmin.POST("/order-list/:id", controller.UpdateOrderStatus)
+	eJwtAdmin.GET("/orders", controller.GetOrderList)
+	eJwtAdmin.POST("/orders/:id", controller.UpdateOrderStatus)
 
 	return e
 }
 
-// /cart/add/:id
-// grouping sama products
-// arsitektur jadiin 3 service controller sm repository
-// responss kasi omit empty, gausa dikeluarin kalo misal err nil
+// /cart/add/:id - fix name udah route udah
+// grouping sama products - fix products grouping udah
+// responss kasi omit empty, gausa dikeluarin kalo misal err nil - resolve with output empty object
+// arsitektur jadiin 3 service controller sm repository - no time
