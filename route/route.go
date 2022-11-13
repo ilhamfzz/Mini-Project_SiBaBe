@@ -58,3 +58,8 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 
 	return e
 }
+
+// /cart/add/:id
+// grouping sama products
+// arsitektur jadiin 3 service controller sm repository
+// responss kasi omit empty, gausa dikeluarin kalo misal err nil
