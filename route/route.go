@@ -16,8 +16,10 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 
 	e := echo.New()
 	e.Use(mid.CORSWithConfig(mid.CORSConfig{
+		Skipper:      mid.DefaultSkipper,
 		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE},
 	}))
 	m.LogMiddleware(e)
 
