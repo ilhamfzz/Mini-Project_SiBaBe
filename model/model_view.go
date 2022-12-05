@@ -97,3 +97,19 @@ type Produksi_Binding struct {
 	NamaProduk string `json:"nama_produk"`
 	TotalBiaya uint   `json:"total_biaya"`
 }
+
+type Produk_View_Integrated struct {
+	Id          uint          `json:"id"`
+	Name        string        `json:"name"`
+	Price       uint          `json:"price"`
+	Stock       uint          `json:"stock"`
+	Image       string        `json:"image"`
+	Description string        `json:"description"`
+	Reviews     []Review_View `json:"reviews"`
+}
+
+type Review_View struct {
+	Username string `json:"username"`
+	Feedback string `json:"feedback"`
+	Rating   uint   `json:"rating"`
+}

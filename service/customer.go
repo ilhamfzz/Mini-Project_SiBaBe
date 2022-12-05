@@ -29,13 +29,47 @@ func (cs *customerService) CreateUser(c echo.Context, user model.Customer) (mode
 	return user, nil
 }
 
-func (cs *customerService) GetAllProduct(c echo.Context) ([]model.Produk, error) {
+func (cs *customerService) GetAllProduct(c echo.Context) ([]model.Produk_View_Integrated, error) {
 	var products []model.Produk
 	err := cs.connection.Find(&products).Error
 	if err != nil {
-		return products, errors.New("tidak ada produk")
+		return []model.Produk_View_Integrated{}, errors.New("produk tidak ditemukan")
 	}
-	return products, nil
+
+	var productsView []model.Produk_View_Integrated
+	for _, p := range products {
+		var productView model.Produk_View_Integrated
+		productView.Id = p.ID
+		productView.Name = p.Nama
+		productView.Price = p.Harga
+		productView.Stock = p.Stok
+		productView.Image = p.Gambar
+		productView.Description = p.Deskripsi
+		var reviews_view []model.Review_View
+		var temp_review []model.Feedback
+		err = cs.connection.Find(&temp_review, "id_produk = ?", p.ID).Error
+		if err != nil {
+			productView.Reviews = nil
+		} else {
+			for _, r := range temp_review {
+				var review_view model.Review_View
+				var temp_feedback_pemesanan model.Feedback_Pemesanan
+				err = cs.connection.Find(&temp_feedback_pemesanan, "id_feedback = ?", r.ID).Error
+				if err != nil {
+					productView.Reviews = nil
+				} else {
+					review_view.Username = temp_feedback_pemesanan.Username
+					review_view.Feedback = r.IsiFeedback
+					review_view.Rating = r.Rating
+					reviews_view = append(reviews_view, review_view)
+				}
+			}
+			productView.Reviews = reviews_view
+		}
+		productsView = append(productsView, productView)
+	}
+
+	return productsView, nil
 }
 
 func (cs *customerService) GetProductById(c echo.Context, id int) (model.Detail_Produk_View, error) {

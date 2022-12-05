@@ -9,7 +9,7 @@ import (
 
 type CustomerSvc interface {
 	CreateUser(c echo.Context, user model.Customer) (model.Customer, error)
-	GetAllProduct(c echo.Context) ([]model.Produk, error)
+	GetAllProduct(c echo.Context) ([]model.Produk_View_Integrated, error)
 	GetProductById(c echo.Context, id int) (model.Detail_Produk_View, error)
 	LoginUser(c echo.Context, user model.Customer) (dto.Login, error)
 	CreateChart(c echo.Context) (model.Keranjang, error)
@@ -29,7 +29,7 @@ type CustomerSvc interface {
 type AdminSvc interface {
 	LoginAdmin(c echo.Context, admin model.Admin) (dto.Login, error)
 	CreateProduct(c echo.Context, product model.Produk) (model.Produk, error)
-	GetAllProduct(c echo.Context) ([]model.Produk, error)
+	GetAllProduct(c echo.Context) ([]model.Produk_View_Integrated, error)
 	UpdateProduct(c echo.Context, id int, product model.Produk) (model.Produk, error)
 	DeleteProduct(c echo.Context, id int) (model.Produk, error)
 	GetMonthlyReport(c echo.Context) ([]model.Laporan_Bulanan_View, error)
