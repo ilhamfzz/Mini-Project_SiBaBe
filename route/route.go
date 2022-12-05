@@ -16,7 +16,7 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 
 	e := echo.New()
 	e.Use(mid.CORSWithConfig(mid.CORSConfig{
-		AllowOrigins: []string{"https://api.sibabe.app", "http://localhost:3000"},
+		AllowOrigins: []string{"*"},
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
 	m.LogMiddleware(e)
