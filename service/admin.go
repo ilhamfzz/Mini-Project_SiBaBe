@@ -27,11 +27,9 @@ func (as *adminService) LoginAdmin(c echo.Context, admin model.Admin) (dto.Login
 		err   error
 	)
 
-	if admin.Username != "admin" || admin.Password != "admin" {
-		err = as.connection.Where("username = ? AND password = ?", admin.Username, admin.Password).First(&admin).Error
-		if err != nil {
-			return login, errors.New("username or Password is wrong")
-		}
+	err = as.connection.Where("username = ? AND password = ?", admin.Username, admin.Password).First(&admin).Error
+	if err != nil {
+		return login, errors.New("username or Password is wrong")
 	}
 
 	login.Token, err = middleware.CreateToken(admin.Username, admin.Password)
