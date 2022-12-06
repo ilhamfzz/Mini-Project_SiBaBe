@@ -118,9 +118,6 @@ func UpdateProductFromCartMinus(c echo.Context) error {
 
 	_, err = customerService.UpdateProductFromCartMinus(c, id)
 	if err != nil {
-		if err.Error() == "produk berhasil dihapus dari keranjang" {
-			return c.JSON(http.StatusOK, dto.BuildResponse("Success update product from cart minus", err.Error()))
-		}
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to update product from cart minus", err))
 	}
 
@@ -145,7 +142,16 @@ func DeleteProductFromCart(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to delete product from cart", err))
 	}
-	return c.JSON(http.StatusOK, dto.BuildResponse("Success delete product from cart", dto.EmptyObj{}))
+
+	result, err := customerService.GetCart(c)
+	if err != nil {
+		if err.Error() == "tidak ada barang di keranjang" {
+			return c.JSON(http.StatusOK, dto.BuildResponse("Success get cart", dto.EmptyObj{}))
+		}
+		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to get cart", err))
+	}
+
+	return c.JSON(http.StatusOK, dto.BuildResponse("Success delete product from cart", result))
 }
 
 func Checkout(c echo.Context) error {

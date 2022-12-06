@@ -373,7 +373,7 @@ func (cs *customerService) UpdateProductFromCartMinus(c echo.Context, id int) (m
 		if err != nil {
 			return model.General_Product_Cart{}, errors.New("gagal menghapus produk dari keranjang")
 		}
-		return model.General_Product_Cart{}, errors.New("produk berhasil dihapus dari keranjang")
+		return model.General_Product_Cart{}, nil
 	}
 
 	return model.General_Product_Cart{
