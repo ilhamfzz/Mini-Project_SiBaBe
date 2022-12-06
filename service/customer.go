@@ -276,6 +276,17 @@ func (cs *customerService) GetCart(c echo.Context) (model.Chart_View, error) {
 		}
 	}
 
+	// sort result_product_Chart_view by product id
+	for i := 0; i < len(result_product_Chart_view); i++ {
+		for j := 0; j < len(result_product_Chart_view)-1; j++ {
+			if result_product_Chart_view[j].ProductID > result_product_Chart_view[j+1].ProductID {
+				temp := result_product_Chart_view[j]
+				result_product_Chart_view[j] = result_product_Chart_view[j+1]
+				result_product_Chart_view[j+1] = temp
+			}
+		}
+	}
+
 	result := model.Chart_View{
 		Id:         chart.ID,
 		Username:   chart.Username,

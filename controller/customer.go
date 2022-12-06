@@ -94,10 +94,19 @@ func UpdateProductFromCartPlus(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
 
-	result, err := customerService.UpdateProductFromCartPlus(c, id)
+	_, err = customerService.UpdateProductFromCartPlus(c, id)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to update product from cart plus", err))
 	}
+
+	result, err := customerService.GetCart(c)
+	if err != nil {
+		if err.Error() == "tidak ada barang di keranjang" {
+			return c.JSON(http.StatusOK, dto.BuildResponse("Success get cart", dto.EmptyObj{}))
+		}
+		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to get cart", err))
+	}
+
 	return c.JSON(http.StatusOK, dto.BuildResponse("Success update product from cart plus", result))
 }
 
@@ -107,13 +116,22 @@ func UpdateProductFromCartMinus(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
 
-	result, err := customerService.UpdateProductFromCartMinus(c, id)
+	_, err = customerService.UpdateProductFromCartMinus(c, id)
 	if err != nil {
 		if err.Error() == "produk berhasil dihapus dari keranjang" {
 			return c.JSON(http.StatusOK, dto.BuildResponse("Success update product from cart minus", err.Error()))
 		}
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to update product from cart minus", err))
 	}
+
+	result, err := customerService.GetCart(c)
+	if err != nil {
+		if err.Error() == "tidak ada barang di keranjang" {
+			return c.JSON(http.StatusOK, dto.BuildResponse("Success get cart", dto.EmptyObj{}))
+		}
+		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to get cart", err))
+	}
+
 	return c.JSON(http.StatusOK, dto.BuildResponse("Success update product from cart minus", result))
 }
 
