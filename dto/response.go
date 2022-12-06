@@ -26,6 +26,6 @@ func BuildErrorResponse(message string, err error) Response {
 
 type Login struct {
 	Username string `json:"username"`
-	Nama     string `json:"nama"`
+	Name     string `json:"name"`
 	Token    string `json:"token"`
 }

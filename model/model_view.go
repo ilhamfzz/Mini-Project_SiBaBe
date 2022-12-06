@@ -1,104 +1,122 @@
 package model
 
-type Daftar_Pemesanan struct {
-	IdPemesanan      uint          `json:"id_pemesanan"`
-	IdKeranjang      uint          `json:"id_keranjang"`
-	Status           string        `json:"status"`
-	Daftar_Pemesanan []Produk_View `json:"daftar_pemesanan"`
-}
+import (
+	"time"
+)
 
-type Checkout_Binding struct {
-	Kurir  string `json:"kurir"`
-	Alamat string `json:"alamat"`
-}
-
-type Payment_Binding struct {
-	BuktiPembayaran string `json:"bukti_pembayaran"`
+type Order_List struct {
+	OrderID   uint           `json:"order_id"`
+	ChartID   uint           `json:"chart_id"`
+	Status    string         `json:"status"`
+	OrderList []Product_View `json:"orderList"`
 }
 
 type Checkout struct {
-	Alamat      string         `json:"alamat"`
-	Kurir       string         `json:"kurir"`
-	OngkosKirim uint           `json:"ongkos_kirim"`
-	Total_Harga uint           `json:"total_harga"`
-	Keranjang   Keranjang_View `json:"keranjang"`
+	Address      string     `json:"address"`
+	Courier      string     `json:"courier"`
+	ShippingCost uint       `json:"shippingCost"`
+	FinalPrice   uint       `json:"finalPrice"`
+	Chart        Chart_View `json:"chart"`
 }
 
-type Keranjang_View struct {
-	Id           uint                    `json:"id"`
-	Username     string                  `json:"username"`
-	JumlahBarang uint                    `json:"jumlah_barang"`
-	TotalHarga   uint                    `json:"total_harga"`
-	Produk       []Produk_Keranjang_View `json:"produk"`
+type Chart_View struct {
+	Id         uint                 `json:"id"`
+	Username   string               `json:"username"`
+	TotalQty   uint                 `json:"totalQty"`
+	TotalPrice uint                 `json:"totalPrice"`
+	Product    []Product_Chart_View `json:"product"`
 }
 
-type Produk_Keranjang_View struct {
-	IdKeranjang  uint        `json:"id_keranjang"`
-	IdProduk     uint        `json:"id_produk"`
-	JumlahProduk uint        `json:"jumlah_produk"`
-	TotalHarga   uint        `json:"total_harga"`
-	Produk       Produk_View `json:"produk"`
+type Product_Chart_View struct {
+	ChartID    uint         `json:"chartId"`
+	ProductID  uint         `json:"productId"`
+	Quantity   uint         `json:"quantity"`
+	TotalPrice uint         `json:"totalPrice"`
+	Product    Product_View `json:"product"`
 }
 
-type Produk_View struct {
-	Id        uint   `json:"id"`
-	Nama      string `json:"nama"`
-	Gambar    string `json:"gambar"`
-	Deskripsi string `json:"deskripsi"`
-	Harga     uint   `json:"harga"`
+type Product_View struct {
+	Id          uint   `json:"id"`
+	Name        string `json:"name"`
+	Image       string `json:"image"`
+	Description string `json:"description"`
+	Price       uint   `json:"price"`
 }
 
-type Detail_Produk_View struct {
-	Id             uint            `json:"id"`
-	Nama           string          `json:"nama"`
-	Gambar         string          `json:"gambar"`
-	Deskripsi      string          `json:"deskripsi"`
-	Harga          uint            `json:"harga"`
-	Stok           uint            `json:"stok"`
-	DaftarFeedback []Feedback_View `json:"daftar_feedback"`
+type Detail_Product_View struct {
+	Id           uint                 `json:"id"`
+	Name         string               `json:"name"`
+	Image        string               `json:"image"`
+	Description  string               `json:"description"`
+	Price        uint                 `json:"price"`
+	Stock        uint                 `json:"stock"`
+	FeedbackList []Feedback_Full_View `json:"feedbackList"`
+}
+
+type Feedback_Full_View struct {
+	Username  string        `json:"username"`
+	ProductId uint          `json:"productId"`
+	Feedback  Feedback_View `json:"feedback"`
 }
 
 type Feedback_View struct {
-	Username string   `json:"username"`
-	IdProduk uint     `json:"id_produk"`
-	Feedback Feedback `json:"feedback"`
+	Id        uint      `json:"id"`
+	CreatedAt time.Time `json:"createdAt"`
+	ProductID uint      `json:"productId"`
+	Comment   string    `json:"comment"`
+	Rating    uint      `json:"rating"`
 }
 
 type History_View struct {
-	Pemesanan []Pemesanan `json:"pemesanan"`
+	Order []Order_View `json:"order"`
+}
+
+type Order_View struct {
+	Id               uint      `json:"id"`
+	CreatedAt        time.Time `json:"createdAt"`
+	ChartID          uint      `json:"chartId"`
+	CustomerUsername string    `json:"customer_username"`
+	TotalQty         uint      `json:"totalQty"`
+	TotalPrice       uint      `json:"totalPrice"`
+	Status           string    `json:"status"`
+	Address          string    `json:"address"`
+	Courier          string    `json:"courier"`
+	ProofOfPayment   string    `json:"proofOfPayment"`
+	ValidatedBy      string    `json:"validationBy"`
 }
 
 type Detail_History_View struct {
-	IdPemesanan uint                    `json:"id_pemesanan"`
-	IdKeranjang uint                    `json:"id_keranjang"`
-	Status      string                  `json:"status"`
-	Alamat      string                  `json:"alamat"`
-	Kurir       string                  `json:"kurir"`
-	Produk      []Produk_Pemesanan_View `json:"produk"`
+	OrderID uint                 `json:"orderId"`
+	ChartID uint                 `json:"chartId"`
+	Status  string               `json:"status"`
+	Address string               `json:"address"`
+	Courier string               `json:"courier"`
+	Product []Product_Order_View `json:"product"`
 }
 
-type Produk_Pemesanan_View struct {
-	JumlahProduk uint        `json:"jumlah_produk"`
-	TotalHarga   uint        `json:"total_harga"`
-	Produk       Produk_View `json:"produk"`
+type Product_Order_View struct {
+	TotalQty   uint         `json:"totalQty"`
+	TotalPrice uint         `json:"totalPrice"`
+	Product    Product_View `json:"product"`
 }
 
-type Laporan_Bulanan_View struct {
-	Bulan   string              `json:"bulan"`
-	Tahun   int                 `json:"tahun"`
-	Laporan []Laporan_Keuangann `json:"laporan"`
+type Monthly_Report_View struct {
+	Month  string         `json:"month"`
+	Year   int            `json:"year"`
+	Report []Money_Report `json:"report"`
+}
+
+type Money_Report struct {
+	Date    time.Time `json:"date"`
+	Income  uint      `json:"income"`
+	Expense uint      `json:"expense"`
 }
 
 type Update_Order_Status_Binding struct {
 	Status string `json:"status"`
 }
 
-type Produksi_Binding struct {
-	NamaProduk string `json:"nama_produk"`
-	TotalBiaya uint   `json:"total_biaya"`
-}
-
-type Produk_View_Integrated struct {
+type Product_View_Integrated struct {
 	Id          uint          `json:"id"`
 	Name        string        `json:"name"`
 	Price       uint          `json:"price"`

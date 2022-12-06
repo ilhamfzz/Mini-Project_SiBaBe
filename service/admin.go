@@ -21,13 +21,14 @@ func NewAdminService(db *gorm.DB) AdminSvc {
 	}
 }
 
-func (as *adminService) LoginAdmin(c echo.Context, admin model.Admin) (dto.Login, error) {
+func (as *adminService) LoginAdmin(c echo.Context, admin model.Login_Binding) (dto.Login, error) {
 	var (
-		login dto.Login
-		err   error
+		adminDomain model.Admin
+		login       dto.Login
+		err         error
 	)
 
-	err = as.connection.Where("username = ? AND password = ?", admin.Username, admin.Password).First(&admin).Error
+	err = as.connection.Where("username = ? AND password = ?", admin.Username, admin.Password).First(&adminDomain).Error
 	if err != nil {
 		return login, errors.New("username or Password is wrong")
 	}
@@ -37,31 +38,47 @@ func (as *adminService) LoginAdmin(c echo.Context, admin model.Admin) (dto.Login
 		return login, errors.New("failed to create token")
 	}
 
-	login.Username = admin.Username
-	login.Nama = admin.Nama
+	login.Username = adminDomain.Username
+	login.Name = adminDomain.Nama
 
 	return login, nil
 }
 
-func (as *adminService) CreateProduct(c echo.Context, product model.Produk) (model.Produk, error) {
-	err := as.connection.Create(&product).Error
+func (as *adminService) CreateProduct(c echo.Context, product model.Product_Binding) (model.General_Product, error) {
+	productDomain := model.Produk{
+		Nama:      product.Name,
+		Gambar:    product.Image,
+		Stok:      product.Stock,
+		Deskripsi: product.Description,
+		Harga:     product.Price,
+	}
+	err := as.connection.Create(&productDomain).Error
 	if err != nil {
-		return product, errors.New("failed to create product")
+		return model.General_Product{}, errors.New("failed to create product")
 	}
 
-	return product, nil
+	return model.General_Product{
+		Id:          productDomain.ID,
+		CreatedAt:   productDomain.CreatedAt,
+		UpdatedAt:   productDomain.UpdatedAt,
+		Name:        productDomain.Nama,
+		Image:       productDomain.Gambar,
+		Stock:       productDomain.Stok,
+		Description: productDomain.Deskripsi,
+		Price:       productDomain.Harga,
+	}, nil
 }
 
-func (as *adminService) GetAllProduct(c echo.Context) ([]model.Produk_View_Integrated, error) {
+func (as *adminService) GetAllProduct(c echo.Context) ([]model.Product_View_Integrated, error) {
 	var products []model.Produk
 	err := as.connection.Find(&products).Error
 	if err != nil {
-		return []model.Produk_View_Integrated{}, errors.New("produk tidak ditemukan")
+		return []model.Product_View_Integrated{}, errors.New("produk tidak ditemukan")
 	}
 
-	var productsView []model.Produk_View_Integrated
+	var productsView []model.Product_View_Integrated
 	for _, p := range products {
-		var productView model.Produk_View_Integrated
+		var productView model.Product_View_Integrated
 		productView.Id = p.ID
 		productView.Name = p.Nama
 		productView.Price = p.Harga
@@ -95,7 +112,7 @@ func (as *adminService) GetAllProduct(c echo.Context) ([]model.Produk_View_Integ
 	return productsView, nil
 }
 
-func (as *adminService) UpdateProduct(c echo.Context, id int, product model.Produk) (model.Produk, error) {
+func (as *adminService) UpdateProduct(c echo.Context, id int, product model.Product_Binding) (model.General_Product, error) {
 	var (
 		updatedProduct model.Produk
 		err            error
@@ -103,32 +120,43 @@ func (as *adminService) UpdateProduct(c echo.Context, id int, product model.Prod
 
 	err = as.connection.Where("id = ?", id).First(&updatedProduct).Error
 	if err != nil {
-		return updatedProduct, errors.New("failed to get product")
+		return model.General_Product{}, errors.New("failed to get product")
 	}
 
-	if product.Nama != "" {
-		updatedProduct.Nama = product.Nama
+	if product.Name != "" {
+		updatedProduct.Nama = product.Name
 	}
-	if product.Gambar != "" {
-		updatedProduct.Gambar = product.Gambar
+	if product.Image != "" {
+		updatedProduct.Gambar = product.Image
 	}
-	updatedProduct.Stok = product.Stok
-	if product.Deskripsi != "" {
-		updatedProduct.Deskripsi = product.Deskripsi
+	if product.Stock != 0 {
+		updatedProduct.Stok = product.Stock
 	}
-	if product.Harga != 0 {
-		updatedProduct.Harga = product.Harga
+	if product.Description != "" {
+		updatedProduct.Deskripsi = product.Description
+	}
+	if product.Price != 0 {
+		updatedProduct.Harga = product.Price
 	}
 
 	err = as.connection.Save(&updatedProduct).Error
 	if err != nil {
-		return updatedProduct, errors.New("failed to update product")
+		return model.General_Product{}, errors.New("failed to update product")
 	}
 
-	return updatedProduct, nil
+	return model.General_Product{
+		Id:          updatedProduct.ID,
+		CreatedAt:   updatedProduct.CreatedAt,
+		UpdatedAt:   updatedProduct.UpdatedAt,
+		Name:        updatedProduct.Nama,
+		Image:       updatedProduct.Gambar,
+		Stock:       updatedProduct.Stok,
+		Description: updatedProduct.Deskripsi,
+		Price:       updatedProduct.Harga,
+	}, nil
 }
 
-func (as *adminService) DeleteProduct(c echo.Context, id int) (model.Produk, error) {
+func (as *adminService) DeleteProduct(c echo.Context, id int) error {
 	var (
 		product model.Produk
 		err     error
@@ -136,21 +164,22 @@ func (as *adminService) DeleteProduct(c echo.Context, id int) (model.Produk, err
 
 	err = as.connection.Where("id = ?", id).First(&product).Error
 	if err != nil {
-		return product, errors.New("failed to get product")
+		return errors.New("failed to get product")
 	}
 
 	err = as.connection.Delete(&product).Error
 	if err != nil {
-		return product, errors.New("failed to delete product")
+		return errors.New("failed to delete product")
 	}
 
-	return product, nil
+	return nil
 }
 
-func (as *adminService) GetMonthlyReport(c echo.Context) ([]model.Laporan_Bulanan_View, error) {
+func (as *adminService) GetMonthlyReport(c echo.Context) ([]model.Monthly_Report_View, error) {
 	var (
-		monthlyReport []model.Laporan_Bulanan_View
+		monthlyReport []model.Monthly_Report_View
 		allReport     []model.Laporan_Keuangann
+		allReportView []model.Money_Report
 		err           error
 	)
 
@@ -159,64 +188,66 @@ func (as *adminService) GetMonthlyReport(c echo.Context) ([]model.Laporan_Bulana
 		return monthlyReport, errors.New("no report found this year")
 	}
 
+	for _, r := range allReport {
+		var reportView model.Money_Report
+		reportView.Date = r.Tanggal
+		reportView.Income = r.TotalPemasukan
+		reportView.Expense = r.TotalPengeluaran
+		allReportView = append(allReportView, reportView)
+	}
+
 	for i := 1; i <= 12; i++ {
 		var (
-			monthlyReportTemp model.Laporan_Bulanan_View
-			singleReport      []model.Laporan_Keuangann
+			monthlyReportTemp model.Monthly_Report_View
+			singleReport      []model.Money_Report
 		)
 
-		for _, report := range allReport {
-			if report.Tanggal.Month() == time.Month(i) && report.Tanggal.Year() == time.Now().Year() {
-				monthlyReportTemp.Bulan = report.Tanggal.Month().String()
-				monthlyReportTemp.Tahun = report.Tanggal.Year()
+		for _, report := range allReportView {
+			if report.Date.Month() == time.Month(i) && report.Date.Year() == time.Now().Year() {
+				monthlyReportTemp.Month = report.Date.Month().String()
+				monthlyReportTemp.Year = report.Date.Year()
 				singleReport = append(singleReport, report)
 			}
 		}
 
-		monthlyReportTemp.Laporan = singleReport
+		monthlyReportTemp.Report = singleReport
 		monthlyReport = append(monthlyReport, monthlyReportTemp)
 	}
 
 	return monthlyReport, nil
 }
 
-func (as *adminService) CreateProduction(c echo.Context, production model.Produksi_Binding) (model.Produksi, error) {
+func (as *adminService) CreateProduction(c echo.Context, production model.Production_Binding) (model.General_Production, error) {
 	produksi := model.Produksi{
 		AdminUsername: middleware.ExtractTokenUsername(c),
-		TotalBiaya:    production.TotalBiaya,
+		TotalBiaya:    production.TotalPrice,
 	}
 	err := as.connection.Create(&produksi).Error
 	if err != nil {
-		return model.Produksi{}, errors.New("failed to create production")
+		return model.General_Production{}, errors.New("failed to create production")
 	}
 
-	var report model.Laporan_Keuangann
-	err = as.connection.Where("tanggal = ?", produksi.CreatedAt).Find(&report).Error
+	var reportDomain model.Laporan_Keuangann
+	reportDomain.Tanggal = produksi.CreatedAt
+	reportDomain.TotalPemasukan = 0
+	reportDomain.TotalPengeluaran = produksi.TotalBiaya
+	err = as.connection.Create(&reportDomain).Error
 	if err != nil {
-		return model.Produksi{}, errors.New("failed to get report")
-	}
-	if report.Tanggal != produksi.CreatedAt && report.TotalPemasukan == 0 && report.TotalPengeluaran == 0 {
-		report.Tanggal = produksi.CreatedAt
-		report.TotalPemasukan = 0
-		report.TotalPengeluaran = produksi.TotalBiaya
-		err = as.connection.Create(&report).Error
-		if err != nil {
-			return model.Produksi{}, errors.New("failed to create report")
-		}
-	} else {
-		report.TotalPengeluaran = report.TotalPengeluaran + produksi.TotalBiaya
-		err = as.connection.Save(&report).Error
-		if err != nil {
-			return model.Produksi{}, errors.New("failed to update report")
-		}
+		return model.General_Production{}, errors.New("failed to create report")
 	}
 
-	return produksi, nil
+	return model.General_Production{
+		Id:            produksi.ID,
+		CreatedAt:     produksi.CreatedAt,
+		UpdatedAt:     produksi.UpdatedAt,
+		AdminUsername: produksi.AdminUsername,
+		TotalPrice:    produksi.TotalBiaya,
+	}, nil
 }
 
-func (as *adminService) GetOrderList(c echo.Context) ([]model.Daftar_Pemesanan, error) {
+func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error) {
 	var (
-		result []model.Daftar_Pemesanan
+		result []model.Order_List
 		orders []model.Pemesanan
 		err    error
 	)
@@ -228,20 +259,31 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Daftar_Pemesanan, 
 
 	for _, order := range orders {
 		var (
-			singleOrder       model.Daftar_Pemesanan
-			singleOrderDetail []model.Produk_View
-			charts            []model.Produk_Keranjang
+			singleOrder       model.Order_List
+			singleOrderDetail []model.Product_View
+			chartsDomain      []model.Produk_Keranjang
+			charts            []model.General_Product_Chart
 		)
 
-		err := as.connection.Where("id_keranjang = ?", order.IdKeranjang).Find(&charts).Error
+		err := as.connection.Where("id_keranjang = ?", order.IdKeranjang).Find(&chartsDomain).Error
 		if err != nil {
 			return result, errors.New("failed get produk from each order list")
+		}
+
+		for _, chart := range chartsDomain {
+			chartTemp := model.General_Product_Chart{
+				ChartID:    chart.IdKeranjang,
+				ProductID:  chart.IdProduk,
+				Quantity:   chart.JumlahProduk,
+				TotalPrice: chart.TotalHarga,
+			}
+			charts = append(charts, chartTemp)
 		}
 
 		var products []model.Produk
 		for _, chart := range charts {
 			var product model.Produk
-			err := as.connection.Where("id = ?", chart.IdProduk).Find(&product).Error
+			err := as.connection.Where("id = ?", chart.ProductID).Find(&product).Error
 			if err != nil {
 				return result, errors.New("failed to get produk from each order list")
 			}
@@ -249,20 +291,20 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Daftar_Pemesanan, 
 		}
 
 		for _, product := range products {
-			var singleProduct model.Produk_View
+			var singleProduct model.Product_View
 			singleProduct.Id = product.ID
-			singleProduct.Nama = product.Nama
-			singleProduct.Gambar = product.Gambar
-			singleProduct.Deskripsi = product.Deskripsi
-			singleProduct.Harga = product.Harga
+			singleProduct.Name = product.Nama
+			singleProduct.Image = product.Gambar
+			singleProduct.Description = product.Deskripsi
+			singleProduct.Price = product.Harga
 
 			singleOrderDetail = append(singleOrderDetail, singleProduct)
 		}
 
-		singleOrder.IdPemesanan = order.ID
-		singleOrder.IdKeranjang = order.IdKeranjang
+		singleOrder.OrderID = order.ID
+		singleOrder.ChartID = order.IdKeranjang
 		singleOrder.Status = order.Status
-		singleOrder.Daftar_Pemesanan = singleOrderDetail
+		singleOrder.OrderList = singleOrderDetail
 
 		result = append(result, singleOrder)
 	}
@@ -270,7 +312,7 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Daftar_Pemesanan, 
 	return result, nil
 }
 
-func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.Update_Order_Status_Binding) (model.Pemesanan, error) {
+func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.Update_Order_Status_Binding) (model.General_Order, error) {
 	var (
 		order model.Pemesanan
 		err   error
@@ -278,9 +320,12 @@ func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.U
 
 	err = as.connection.Where("id = ?", id).First(&order).Error
 	if err != nil {
-		return order, errors.New("failed to get order")
+		return model.General_Order{}, errors.New("failed to get order")
 	}
 
+	if status.Status == "terima" {
+		order.Status = "Terima"
+	}
 	order.Status = status.Status
 	if status.Status != "Terima" {
 		order.Status = "Tolak"
@@ -289,46 +334,34 @@ func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.U
 	order.DiValidasiOleh = middleware.ExtractTokenUsername(c)
 	err = as.connection.Save(&order).Error
 	if err != nil {
-		return order, errors.New("failed to update order status")
+		return model.General_Order{}, errors.New("failed to update order status")
 	}
 
-	if status.Status == "Terima" {
+	if order.Status == "Terima" {
 		var report model.Laporan_Keuangann
-		err = as.connection.Where("tanggal = ?", order.UpdatedAt).Find(&report).Error
+		report.Tanggal = order.UpdatedAt
+		report.TotalPemasukan = order.TotalHarga
+		report.TotalPengeluaran = 0
+		err = as.connection.Create(&report).Error
 		if err != nil {
-			return order, errors.New("failed to get report data")
-		}
-		if report.Tanggal != order.UpdatedAt && report.TotalPemasukan == 0 && report.TotalPengeluaran == 0 {
-			report.Tanggal = order.UpdatedAt
-			report.TotalPemasukan = order.TotalHarga
-			report.TotalPengeluaran = 0
-			err = as.connection.Create(&report).Error
-			if err != nil {
-				return order, errors.New("failed to create report")
-			}
-		} else {
-			report.TotalPemasukan = report.TotalPemasukan + order.TotalHarga
-			err = as.connection.Save(&report).Error
-			if err != nil {
-				return order, errors.New("failed to update report")
-			}
+			return model.General_Order{}, errors.New("failed to create report")
 		}
 
 		var charts []model.Produk_Keranjang
 		err = as.connection.Where("id_keranjang = ?", order.IdKeranjang).Find(&charts).Error
 		if err != nil {
-			return order, errors.New("failed to get chart")
+			return model.General_Order{}, errors.New("failed to get chart")
 		}
 		for _, chart := range charts {
 			var product model.Produk
 			err = as.connection.Where("id = ?", chart.IdProduk).First(&product).Error
 			if err != nil {
-				return order, errors.New("failed to get product")
+				return model.General_Order{}, errors.New("failed to get product")
 			}
 			product.Stok = product.Stok - chart.JumlahProduk
 			err = as.connection.Save(&product).Error
 			if err != nil {
-				return order, errors.New("failed to update product stock")
+				return model.General_Order{}, errors.New("failed to update product stock")
 			}
 		}
 	}
@@ -341,8 +374,21 @@ func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.U
 	}
 	err = as.connection.Create(&admin_choice).Error
 	if err != nil {
-		return order, errors.New("failed to create log admin choice")
+		return model.General_Order{}, errors.New("failed to create log admin choice")
 	}
 
-	return order, nil
+	return model.General_Order{
+		Id:               order.ID,
+		CreatedAt:        order.CreatedAt,
+		UpdatedAt:        order.UpdatedAt,
+		ChartID:          order.IdKeranjang,
+		CustomerUsername: order.CustomerUsername,
+		TotalQty:         order.JumlahBarang,
+		TotalPrice:       order.TotalHarga,
+		Status:           order.Status,
+		Address:          order.Alamat,
+		Courier:          order.Kurir,
+		ProofOfPayment:   order.BuktiPembayaran,
+		ValidatedBy:      order.DiValidasiOleh,
+	}, nil
 }
