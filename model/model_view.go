@@ -12,22 +12,22 @@ type Order_List struct {
 }
 
 type Checkout struct {
-	Address      string     `json:"address"`
-	Courier      string     `json:"courier"`
-	ShippingCost uint       `json:"shippingCost"`
-	FinalPrice   uint       `json:"finalPrice"`
-	Chart        Chart_View `json:"chart"`
+	Address      string    `json:"address"`
+	Courier      string    `json:"courier"`
+	ShippingCost uint      `json:"shippingCost"`
+	FinalPrice   uint      `json:"finalPrice"`
+	Cart         Cart_View `json:"cart"`
 }
 
-type Chart_View struct {
-	Id         uint                 `json:"id"`
-	Username   string               `json:"username"`
-	TotalQty   uint                 `json:"totalQty"`
-	TotalPrice uint                 `json:"totalPrice"`
-	Product    []Product_Chart_View `json:"product"`
+type Cart_View struct {
+	Id         uint                `json:"id"`
+	Username   string              `json:"username"`
+	TotalQty   uint                `json:"totalQty"`
+	TotalPrice uint                `json:"totalPrice"`
+	Product    []Product_Cart_View `json:"product"`
 }
 
-type Product_Chart_View struct {
+type Product_Cart_View struct {
 	CartID     uint         `json:"cartId"`
 	ProductID  uint         `json:"productId"`
 	Quantity   uint         `json:"quantity"`

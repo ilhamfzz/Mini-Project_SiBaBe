@@ -15,7 +15,7 @@ type General_Customer struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-type General_Chart struct {
+type General_Cart struct {
 	Id         uint      `json:"id"`
 	CreatedAt  time.Time `json:"createdAt"`
 	UpdatedAt  time.Time `json:"updatedAt"`
@@ -24,8 +24,8 @@ type General_Chart struct {
 	Status     string    `json:"status"`
 }
 
-type General_Product_Chart struct {
-	ChartID    uint `json:"chartId"`
+type General_Product_Cart struct {
+	CartID     uint `json:"cartId"`
 	ProductID  uint `json:"productId"`
 	Quantity   uint `json:"quantity"`
 	TotalPrice uint `json:"totalPrice"`
@@ -54,7 +54,7 @@ type General_Order struct {
 	Id               uint      `json:"id"`
 	CreatedAt        time.Time `json:"createdAt"`
 	UpdatedAt        time.Time `json:"updatedAt"`
-	ChartID          uint      `json:"chartId"`
+	CartID           uint      `json:"cartId"`
 	CustomerUsername string    `json:"customerUsername"`
 	TotalQty         uint      `json:"totalQty"`
 	TotalPrice       uint      `json:"totalPrice"`

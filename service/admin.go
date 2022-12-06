@@ -261,29 +261,29 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 		var (
 			singleOrder       model.Order_List
 			singleOrderDetail []model.Product_View
-			chartsDomain      []model.Produk_Keranjang
-			charts            []model.General_Product_Chart
+			cartsDomain       []model.Produk_Keranjang
+			carts             []model.General_Product_Cart
 		)
 
-		err := as.connection.Where("id_keranjang = ?", order.IdKeranjang).Find(&chartsDomain).Error
+		err := as.connection.Where("id_keranjang = ?", order.IdKeranjang).Find(&cartsDomain).Error
 		if err != nil {
 			return result, errors.New("failed get produk from each order list")
 		}
 
-		for _, chart := range chartsDomain {
-			chartTemp := model.General_Product_Chart{
-				ChartID:    chart.IdKeranjang,
-				ProductID:  chart.IdProduk,
-				Quantity:   chart.JumlahProduk,
-				TotalPrice: chart.TotalHarga,
+		for _, cart := range cartsDomain {
+			cartTemp := model.General_Product_Cart{
+				CartID:     cart.IdKeranjang,
+				ProductID:  cart.IdProduk,
+				Quantity:   cart.JumlahProduk,
+				TotalPrice: cart.TotalHarga,
 			}
-			charts = append(charts, chartTemp)
+			carts = append(carts, cartTemp)
 		}
 
 		var products []model.Produk
-		for _, chart := range charts {
+		for _, cart := range carts {
 			var product model.Produk
-			err := as.connection.Where("id = ?", chart.ProductID).Find(&product).Error
+			err := as.connection.Where("id = ?", cart.ProductID).Find(&product).Error
 			if err != nil {
 				return result, errors.New("failed to get produk from each order list")
 			}
@@ -356,18 +356,18 @@ func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.U
 			return model.General_Order{}, errors.New("failed to create report")
 		}
 
-		var charts []model.Produk_Keranjang
-		err = as.connection.Where("id_keranjang = ?", order.IdKeranjang).Find(&charts).Error
+		var carts []model.Produk_Keranjang
+		err = as.connection.Where("id_keranjang = ?", order.IdKeranjang).Find(&carts).Error
 		if err != nil {
-			return model.General_Order{}, errors.New("failed to get chart")
+			return model.General_Order{}, errors.New("failed to get cart")
 		}
-		for _, chart := range charts {
+		for _, cart := range carts {
 			var product model.Produk
-			err = as.connection.Where("id = ?", chart.IdProduk).First(&product).Error
+			err = as.connection.Where("id = ?", cart.IdProduk).First(&product).Error
 			if err != nil {
 				return model.General_Order{}, errors.New("failed to get product")
 			}
-			product.Stok = product.Stok - chart.JumlahProduk
+			product.Stok = product.Stok - cart.JumlahProduk
 			err = as.connection.Save(&product).Error
 			if err != nil {
 				return model.General_Order{}, errors.New("failed to update product stock")
@@ -390,7 +390,7 @@ func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.U
 		Id:               order.ID,
 		CreatedAt:        order.CreatedAt,
 		UpdatedAt:        order.UpdatedAt,
-		ChartID:          order.IdKeranjang,
+		CartID:           order.IdKeranjang,
 		CustomerUsername: order.CustomerUsername,
 		TotalQty:         order.JumlahBarang,
 		TotalPrice:       order.TotalHarga,

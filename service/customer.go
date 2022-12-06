@@ -150,100 +150,100 @@ func (cs *customerService) LoginUser(c echo.Context, user model.Login_Binding) (
 	return result, nil
 }
 
-func (cs *customerService) CreateChart(c echo.Context) (model.General_Chart, error) {
-	var chart model.Keranjang
-	chart.Username = middleware.ExtractTokenUsername(c)
-	chart.TotalHarga = 0
-	chart.Status = "Belum Checkout"
-	err := cs.connection.Create(&chart).Error
+func (cs *customerService) CreateCart(c echo.Context) (model.General_Cart, error) {
+	var cart model.Keranjang
+	cart.Username = middleware.ExtractTokenUsername(c)
+	cart.TotalHarga = 0
+	cart.Status = "Belum Checkout"
+	err := cs.connection.Create(&cart).Error
 	if err != nil {
-		return model.General_Chart{}, errors.New("gagal membuat keranjang")
+		return model.General_Cart{}, errors.New("gagal membuat keranjang")
 	}
-	return model.General_Chart{
-		Id:         chart.ID,
-		CreatedAt:  chart.CreatedAt,
-		UpdatedAt:  chart.UpdatedAt,
-		Username:   chart.Username,
-		TotalPrice: chart.TotalHarga,
-		Status:     chart.Status,
+	return model.General_Cart{
+		Id:         cart.ID,
+		CreatedAt:  cart.CreatedAt,
+		UpdatedAt:  cart.UpdatedAt,
+		Username:   cart.Username,
+		TotalPrice: cart.TotalHarga,
+		Status:     cart.Status,
 	}, nil
 }
 
-func (cs *customerService) PostProductToCart(c echo.Context, id int) (model.General_Product_Chart, error) {
+func (cs *customerService) PostProductToCart(c echo.Context, id int) (model.General_Product_Cart, error) {
 	var product model.Produk
 	err := cs.connection.Where("id = ?", id).First(&product).Error
 	if err != nil {
-		return model.General_Product_Chart{}, errors.New("produk tidak ditemukan")
+		return model.General_Product_Cart{}, errors.New("produk tidak ditemukan")
 	}
 
-	var chart model.Keranjang
-	_ = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").Find(&chart).Error
-	if chart.Username == "" && chart.TotalHarga == 0 && chart.Status == "" {
-		_, err = cs.CreateChart(c)
+	var cart model.Keranjang
+	_ = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").Find(&cart).Error
+	if cart.Username == "" && cart.TotalHarga == 0 && cart.Status == "" {
+		_, err = cs.CreateCart(c)
 		if err != nil {
-			return model.General_Product_Chart{}, errors.New("gagal membuat keranjang")
+			return model.General_Product_Cart{}, errors.New("gagal membuat keranjang")
 		}
-		err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").Find(&chart).Error
+		err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").Find(&cart).Error
 		if err != nil {
-			return model.General_Product_Chart{}, errors.New("gagal mendapatkan keranjang")
+			return model.General_Product_Cart{}, errors.New("gagal mendapatkan keranjang")
 		}
 	}
 
-	var productFromChart model.Produk_Keranjang
-	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).Find(&productFromChart).Error
+	var productFromCart model.Produk_Keranjang
+	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, cart.ID).Find(&productFromCart).Error
 	if err != nil {
-		return model.General_Product_Chart{}, errors.New("produk tidak ditemukan di keranjang")
+		return model.General_Product_Cart{}, errors.New("produk tidak ditemukan di keranjang")
 	}
-	if productFromChart.IdProduk == 0 && productFromChart.IdKeranjang == 0 && productFromChart.JumlahProduk == 0 && productFromChart.TotalHarga == 0 {
-		productFromChart.IdProduk = product.ID
-		productFromChart.IdKeranjang = chart.ID
-		productFromChart.JumlahProduk = 1
-		productFromChart.TotalHarga = product.Harga
-		err = cs.connection.Create(&productFromChart).Error
+	if productFromCart.IdProduk == 0 && productFromCart.IdKeranjang == 0 && productFromCart.JumlahProduk == 0 && productFromCart.TotalHarga == 0 {
+		productFromCart.IdProduk = product.ID
+		productFromCart.IdKeranjang = cart.ID
+		productFromCart.JumlahProduk = 1
+		productFromCart.TotalHarga = product.Harga
+		err = cs.connection.Create(&productFromCart).Error
 		if err != nil {
-			return model.General_Product_Chart{}, errors.New("gagal menambahkan produk ke keranjang baru")
+			return model.General_Product_Cart{}, errors.New("gagal menambahkan produk ke keranjang baru")
 		}
 	} else {
-		productFromChart.JumlahProduk = productFromChart.JumlahProduk + 1
-		productFromChart.TotalHarga = productFromChart.TotalHarga + product.Harga
-		err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).Updates(&productFromChart).Error
+		productFromCart.JumlahProduk = productFromCart.JumlahProduk + 1
+		productFromCart.TotalHarga = productFromCart.TotalHarga + product.Harga
+		err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, cart.ID).Updates(&productFromCart).Error
 		if err != nil {
-			return model.General_Product_Chart{}, errors.New("gagal menambahkan produk ke keranjang lama")
+			return model.General_Product_Cart{}, errors.New("gagal menambahkan produk ke keranjang lama")
 		}
 	}
 
-	chart.TotalHarga = chart.TotalHarga + product.Harga
-	err = cs.connection.Save(&chart).Error
+	cart.TotalHarga = cart.TotalHarga + product.Harga
+	err = cs.connection.Save(&cart).Error
 	if err != nil {
-		return model.General_Product_Chart{}, errors.New("gagal update total harga keranjang")
+		return model.General_Product_Cart{}, errors.New("gagal update total harga keranjang")
 	}
 
-	return model.General_Product_Chart{
-		ChartID:    productFromChart.IdKeranjang,
-		ProductID:  productFromChart.IdProduk,
-		Quantity:   productFromChart.JumlahProduk,
-		TotalPrice: productFromChart.TotalHarga,
+	return model.General_Product_Cart{
+		CartID:     productFromCart.IdKeranjang,
+		ProductID:  productFromCart.IdProduk,
+		Quantity:   productFromCart.JumlahProduk,
+		TotalPrice: productFromCart.TotalHarga,
 	}, nil
 }
 
-func (cs *customerService) GetCart(c echo.Context) (model.Chart_View, error) {
-	var chart model.Keranjang
-	err := cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").Find(&chart).Error
+func (cs *customerService) GetCart(c echo.Context) (model.Cart_View, error) {
+	var cart model.Keranjang
+	err := cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").Find(&cart).Error
 	if err != nil {
-		return model.Chart_View{}, errors.New("keranjang tidak ditemukan")
+		return model.Cart_View{}, errors.New("keranjang tidak ditemukan")
 	}
-	if chart.ID == 0 && chart.Username == "" && chart.TotalHarga == 0 && chart.Status == "" {
-		return model.Chart_View{}, errors.New("tidak ada barang di keranjang")
+	if cart.ID == 0 && cart.Username == "" && cart.TotalHarga == 0 && cart.Status == "" {
+		return model.Cart_View{}, errors.New("tidak ada barang di keranjang")
 	}
 	var jumlah_barang uint = 0
-	var result_product_Chart_view []model.Product_Chart_View
-	var productFromChart []model.Produk_Keranjang
-	err = cs.connection.Where("id_keranjang = ?", chart.ID).Find(&productFromChart).Error
+	var result_product_Cart_view []model.Product_Cart_View
+	var productFromCart []model.Produk_Keranjang
+	err = cs.connection.Where("id_keranjang = ?", cart.ID).Find(&productFromCart).Error
 	if err != nil {
-		return model.Chart_View{}, errors.New("tidak ada barang di keranjang")
+		return model.Cart_View{}, errors.New("tidak ada barang di keranjang")
 	}
-	for _, produk_keranjang := range productFromChart {
-		result_product_Chart_view = append(result_product_Chart_view, model.Product_Chart_View{
+	for _, produk_keranjang := range productFromCart {
+		result_product_Cart_view = append(result_product_Cart_view, model.Product_Cart_View{
 			CartID:     produk_keranjang.IdKeranjang,
 			ProductID:  produk_keranjang.IdProduk,
 			Quantity:   produk_keranjang.JumlahProduk,
@@ -253,11 +253,11 @@ func (cs *customerService) GetCart(c echo.Context) (model.Chart_View, error) {
 	}
 
 	var result_product_view []model.Product_View
-	for _, v := range result_product_Chart_view {
+	for _, v := range result_product_Cart_view {
 		var product model.Produk
 		err = cs.connection.Where("id = ?", v.ProductID).First(&product).Error
 		if err != nil {
-			return model.Chart_View{}, errors.New("gagal mendapatkan barang di keranjang")
+			return model.Cart_View{}, errors.New("gagal mendapatkan barang di keranjang")
 		}
 		result_product_view = append(result_product_view, model.Product_View{
 			Id:          product.ID,
@@ -268,119 +268,119 @@ func (cs *customerService) GetCart(c echo.Context) (model.Chart_View, error) {
 		})
 	}
 
-	for i, v := range result_product_Chart_view {
+	for i, v := range result_product_Cart_view {
 		for j, v2 := range result_product_view {
 			if v.ProductID == v2.Id {
-				result_product_Chart_view[i].Product = result_product_view[j]
+				result_product_Cart_view[i].Product = result_product_view[j]
 			}
 		}
 	}
 
-	// sort result_product_Chart_view by product id
-	for i := 0; i < len(result_product_Chart_view); i++ {
-		for j := i + 1; j < len(result_product_Chart_view); j++ {
-			if result_product_Chart_view[i].ProductID > result_product_Chart_view[j].ProductID {
-				result_product_Chart_view[i], result_product_Chart_view[j] = result_product_Chart_view[j], result_product_Chart_view[i]
+	// sort result_product_Cart_view by product id
+	for i := 0; i < len(result_product_Cart_view); i++ {
+		for j := i + 1; j < len(result_product_Cart_view); j++ {
+			if result_product_Cart_view[i].ProductID > result_product_Cart_view[j].ProductID {
+				result_product_Cart_view[i], result_product_Cart_view[j] = result_product_Cart_view[j], result_product_Cart_view[i]
 			}
 		}
 	}
 
-	result := model.Chart_View{
-		Id:         chart.ID,
-		Username:   chart.Username,
+	result := model.Cart_View{
+		Id:         cart.ID,
+		Username:   cart.Username,
 		TotalQty:   jumlah_barang,
-		TotalPrice: chart.TotalHarga,
-		Product:    result_product_Chart_view,
+		TotalPrice: cart.TotalHarga,
+		Product:    result_product_Cart_view,
 	}
 
 	return result, nil
 }
 
-func (cs *customerService) UpdateProductFromCartPlus(c echo.Context, id int) (model.General_Product_Chart, error) {
+func (cs *customerService) UpdateProductFromCartPlus(c echo.Context, id int) (model.General_Product_Cart, error) {
 	var product model.Produk
 	err := cs.connection.Where("id = ?", id).First(&product).Error
 	if err != nil {
-		return model.General_Product_Chart{}, errors.New("produk tidak ditemukan")
+		return model.General_Product_Cart{}, errors.New("produk tidak ditemukan")
 	}
 
-	var chart model.Keranjang
-	err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").First(&chart).Error
+	var cart model.Keranjang
+	err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").First(&cart).Error
 	if err != nil {
-		return model.General_Product_Chart{}, errors.New("keranjang tidak ditemukan")
+		return model.General_Product_Cart{}, errors.New("keranjang tidak ditemukan")
 	}
 
-	var productFromChart model.Produk_Keranjang
-	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).First(&productFromChart).Error
+	var productFromCart model.Produk_Keranjang
+	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, cart.ID).First(&productFromCart).Error
 	if err != nil {
-		return model.General_Product_Chart{}, errors.New("produk tidak ditemukan di keranjang")
+		return model.General_Product_Cart{}, errors.New("produk tidak ditemukan di keranjang")
 	}
 
-	productFromChart.JumlahProduk = productFromChart.JumlahProduk + 1
-	productFromChart.TotalHarga = productFromChart.TotalHarga + product.Harga
-	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).Updates(&productFromChart).Error
+	productFromCart.JumlahProduk = productFromCart.JumlahProduk + 1
+	productFromCart.TotalHarga = productFromCart.TotalHarga + product.Harga
+	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, cart.ID).Updates(&productFromCart).Error
 	if err != nil {
-		return model.General_Product_Chart{}, errors.New("gagal menambahkan produk ke keranjang")
+		return model.General_Product_Cart{}, errors.New("gagal menambahkan produk ke keranjang")
 	}
 
-	chart.TotalHarga = chart.TotalHarga + product.Harga
-	err = cs.connection.Save(&chart).Error
+	cart.TotalHarga = cart.TotalHarga + product.Harga
+	err = cs.connection.Save(&cart).Error
 	if err != nil {
-		return model.General_Product_Chart{}, errors.New("gagal update total harga keranjang")
+		return model.General_Product_Cart{}, errors.New("gagal update total harga keranjang")
 	}
 
-	return model.General_Product_Chart{
-		ChartID:    productFromChart.IdKeranjang,
-		ProductID:  productFromChart.IdProduk,
-		Quantity:   productFromChart.JumlahProduk,
-		TotalPrice: productFromChart.TotalHarga,
+	return model.General_Product_Cart{
+		CartID:     productFromCart.IdKeranjang,
+		ProductID:  productFromCart.IdProduk,
+		Quantity:   productFromCart.JumlahProduk,
+		TotalPrice: productFromCart.TotalHarga,
 	}, nil
 }
 
-func (cs *customerService) UpdateProductFromCartMinus(c echo.Context, id int) (model.General_Product_Chart, error) {
+func (cs *customerService) UpdateProductFromCartMinus(c echo.Context, id int) (model.General_Product_Cart, error) {
 	var product model.Produk
 	err := cs.connection.Where("id = ?", id).First(&product).Error
 	if err != nil {
-		return model.General_Product_Chart{}, errors.New("produk tidak ditemukan")
+		return model.General_Product_Cart{}, errors.New("produk tidak ditemukan")
 	}
 
-	var chart model.Keranjang
-	err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").First(&chart).Error
+	var cart model.Keranjang
+	err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").First(&cart).Error
 	if err != nil {
-		return model.General_Product_Chart{}, errors.New("keranjang tidak ditemukan")
+		return model.General_Product_Cart{}, errors.New("keranjang tidak ditemukan")
 	}
 
-	var productFromChart model.Produk_Keranjang
-	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).First(&productFromChart).Error
+	var productFromCart model.Produk_Keranjang
+	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, cart.ID).First(&productFromCart).Error
 	if err != nil {
-		return model.General_Product_Chart{}, errors.New("produk tidak ditemukan di keranjang")
+		return model.General_Product_Cart{}, errors.New("produk tidak ditemukan di keranjang")
 	}
 
-	productFromChart.JumlahProduk = productFromChart.JumlahProduk - 1
-	productFromChart.TotalHarga = productFromChart.TotalHarga - product.Harga
-	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).Updates(&productFromChart).Error
+	productFromCart.JumlahProduk = productFromCart.JumlahProduk - 1
+	productFromCart.TotalHarga = productFromCart.TotalHarga - product.Harga
+	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, cart.ID).Updates(&productFromCart).Error
 	if err != nil {
-		return model.General_Product_Chart{}, errors.New("gagal mengurangi produk dari keranjang")
+		return model.General_Product_Cart{}, errors.New("gagal mengurangi produk dari keranjang")
 	}
 
-	chart.TotalHarga = chart.TotalHarga - product.Harga
-	err = cs.connection.Save(&chart).Error
+	cart.TotalHarga = cart.TotalHarga - product.Harga
+	err = cs.connection.Save(&cart).Error
 	if err != nil {
-		return model.General_Product_Chart{}, errors.New("gagal update total harga keranjang")
+		return model.General_Product_Cart{}, errors.New("gagal update total harga keranjang")
 	}
 
-	if productFromChart.JumlahProduk == 0 {
-		err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).Delete(&productFromChart).Error
+	if productFromCart.JumlahProduk == 0 {
+		err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, cart.ID).Delete(&productFromCart).Error
 		if err != nil {
-			return model.General_Product_Chart{}, errors.New("gagal menghapus produk dari keranjang")
+			return model.General_Product_Cart{}, errors.New("gagal menghapus produk dari keranjang")
 		}
-		return model.General_Product_Chart{}, errors.New("produk berhasil dihapus dari keranjang")
+		return model.General_Product_Cart{}, errors.New("produk berhasil dihapus dari keranjang")
 	}
 
-	return model.General_Product_Chart{
-		ChartID:    productFromChart.IdKeranjang,
-		ProductID:  productFromChart.IdProduk,
-		Quantity:   productFromChart.JumlahProduk,
-		TotalPrice: productFromChart.TotalHarga,
+	return model.General_Product_Cart{
+		CartID:     productFromCart.IdKeranjang,
+		ProductID:  productFromCart.IdProduk,
+		Quantity:   productFromCart.JumlahProduk,
+		TotalPrice: productFromCart.TotalHarga,
 	}, nil
 }
 
@@ -391,25 +391,25 @@ func (cs *customerService) DeleteProductFromCart(c echo.Context, id int) error {
 		return errors.New("produk tidak ditemukan")
 	}
 
-	var chart model.Keranjang
-	err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").First(&chart).Error
+	var cart model.Keranjang
+	err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").First(&cart).Error
 	if err != nil {
 		return errors.New("keranjang tidak ditemukan")
 	}
 
-	var productFromChart model.Produk_Keranjang
-	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).First(&productFromChart).Error
+	var productFromCart model.Produk_Keranjang
+	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, cart.ID).First(&productFromCart).Error
 	if err != nil {
 		return errors.New("produk tidak ditemukan di keranjang")
 	}
 
-	chart.TotalHarga = chart.TotalHarga - productFromChart.TotalHarga
-	err = cs.connection.Save(&chart).Error
+	cart.TotalHarga = cart.TotalHarga - productFromCart.TotalHarga
+	err = cs.connection.Save(&cart).Error
 	if err != nil {
 		return errors.New("gagal update total harga keranjang")
 	}
 
-	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).Delete(&productFromChart).Error
+	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, cart.ID).Delete(&productFromCart).Error
 	if err != nil {
 		return errors.New("gagal menghapus produk dari keranjang")
 	}
@@ -417,29 +417,29 @@ func (cs *customerService) DeleteProductFromCart(c echo.Context, id int) error {
 	return nil
 }
 
-func (cs *customerService) Checkout(c echo.Context) (model.Chart_View, error) {
-	chart, err := cs.GetCart(c)
+func (cs *customerService) Checkout(c echo.Context) (model.Cart_View, error) {
+	cart, err := cs.GetCart(c)
 	if err != nil {
-		return model.Chart_View{}, errors.New("keranjang tidak ditemukan")
+		return model.Cart_View{}, errors.New("keranjang tidak ditemukan")
 	}
 
-	return chart, nil
+	return cart, nil
 }
 
 func (cs *customerService) ConfirmCheckout(c echo.Context, checkout_data model.Checkout_Binding) (model.Checkout, error) {
-	chart, err := cs.GetCart(c)
+	cart, err := cs.GetCart(c)
 	if err != nil {
 		return model.Checkout{}, errors.New("keranjang tidak ditemukan")
 	}
 
-	var updateChart model.Keranjang
-	err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").First(&updateChart).Error
+	var updateCart model.Keranjang
+	err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").First(&updateCart).Error
 	if err != nil {
 		return model.Checkout{}, errors.New("keranjang tidak ditemukan")
 	}
 
-	updateChart.Status = "Telah Checkout"
-	err = cs.connection.Save(&updateChart).Error
+	updateCart.Status = "Telah Checkout"
+	err = cs.connection.Save(&updateCart).Error
 	if err != nil {
 		return model.Checkout{}, errors.New("gagal update status keranjang")
 	}
@@ -457,13 +457,13 @@ func (cs *customerService) ConfirmCheckout(c echo.Context, checkout_data model.C
 	}
 	checkout.Courier = checkout_data.Courier
 	checkout.ShippingCost = 0
-	checkout.FinalPrice = chart.TotalPrice
-	checkout.Chart = chart
+	checkout.FinalPrice = cart.TotalPrice
+	checkout.Cart = cart
 
 	var pemesanan model.Pemesanan
-	pemesanan.IdKeranjang = chart.Id
-	pemesanan.CustomerUsername = chart.Username
-	pemesanan.JumlahBarang = chart.TotalQty
+	pemesanan.IdKeranjang = cart.Id
+	pemesanan.CustomerUsername = cart.Username
+	pemesanan.JumlahBarang = cart.TotalQty
 	pemesanan.TotalHarga = checkout.FinalPrice
 	pemesanan.Status = "Belum Dibayar"
 	pemesanan.Alamat = checkout.Address
