@@ -39,6 +39,7 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 	eJwt.GET("/cart", controller.GetCart)
 	eJwt.GET("/cart/plus/:id", controller.UpdateProductFromCartPlus)
 	eJwt.GET("/cart/minus/:id", controller.UpdateProductFromCartMinus)
+	eJwt.GET("/cart/delete/:id", controller.DeleteProductFromCart)
 	eJwt.GET("/checkout", controller.Checkout)
 	eJwt.POST("/checkout/confirm", controller.ConfirmCheckout)
 	eJwt.POST("/checkout/confirm/payment", controller.ConfirmPayment)

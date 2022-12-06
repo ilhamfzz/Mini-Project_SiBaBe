@@ -375,6 +375,39 @@ func (cs *customerService) UpdateProductFromCartMinus(c echo.Context, id int) (m
 	}, nil
 }
 
+func (cs *customerService) DeleteProductFromCart(c echo.Context, id int) error {
+	var product model.Produk
+	err := cs.connection.Where("id = ?", id).First(&product).Error
+	if err != nil {
+		return errors.New("produk tidak ditemukan")
+	}
+
+	var chart model.Keranjang
+	err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Checkout").First(&chart).Error
+	if err != nil {
+		return errors.New("keranjang tidak ditemukan")
+	}
+
+	var productFromChart model.Produk_Keranjang
+	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).First(&productFromChart).Error
+	if err != nil {
+		return errors.New("produk tidak ditemukan di keranjang")
+	}
+
+	chart.TotalHarga = chart.TotalHarga - productFromChart.TotalHarga
+	err = cs.connection.Save(&chart).Error
+	if err != nil {
+		return errors.New("gagal update total harga keranjang")
+	}
+
+	err = cs.connection.Where("id_produk = ? AND id_keranjang = ?", product.ID, chart.ID).Delete(&productFromChart).Error
+	if err != nil {
+		return errors.New("gagal menghapus produk dari keranjang")
+	}
+
+	return nil
+}
+
 func (cs *customerService) Checkout(c echo.Context) (model.Chart_View, error) {
 	chart, err := cs.GetCart(c)
 	if err != nil {

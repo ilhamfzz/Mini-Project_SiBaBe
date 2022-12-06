@@ -117,6 +117,19 @@ func UpdateProductFromCartMinus(c echo.Context) error {
 	return c.JSON(http.StatusOK, dto.BuildResponse("Success update product from cart minus", result))
 }
 
+func DeleteProductFromCart(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
+	}
+
+	err = customerService.DeleteProductFromCart(c, id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to delete product from cart", err))
+	}
+	return c.JSON(http.StatusOK, dto.BuildResponse("Success delete product from cart", dto.EmptyObj{}))
+}
+
 func Checkout(c echo.Context) error {
 	result, err := customerService.Checkout(c)
 	if err != nil {

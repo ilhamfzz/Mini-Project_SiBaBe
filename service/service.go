@@ -17,6 +17,7 @@ type CustomerSvc interface {
 	GetCart(c echo.Context) (model.Chart_View, error)
 	UpdateProductFromCartPlus(c echo.Context, id int) (model.General_Product_Chart, error)
 	UpdateProductFromCartMinus(c echo.Context, id int) (model.General_Product_Chart, error)
+	DeleteProductFromCart(c echo.Context, id int) error
 	Checkout(c echo.Context) (model.Chart_View, error)
 	ConfirmCheckout(c echo.Context, checkout model.Checkout_Binding) (model.Checkout, error)
 	ConfirmPayment(c echo.Context, payment model.Payment_Binding) error
