@@ -301,6 +301,15 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 			singleOrderDetail = append(singleOrderDetail, singleProduct)
 		}
 
+		// sort singleOrderDetail by id
+		for i := 0; i < len(singleOrderDetail); i++ {
+			for j := i + 1; j < len(singleOrderDetail); j++ {
+				if singleOrderDetail[i].Id > singleOrderDetail[j].Id {
+					singleOrderDetail[i], singleOrderDetail[j] = singleOrderDetail[j], singleOrderDetail[i]
+				}
+			}
+		}
+
 		singleOrder.OrderID = order.ID
 		singleOrder.CartID = order.IdKeranjang
 		singleOrder.Status = order.Status
