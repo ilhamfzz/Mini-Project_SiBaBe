@@ -302,7 +302,7 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 		}
 
 		singleOrder.OrderID = order.ID
-		singleOrder.ChartID = order.IdKeranjang
+		singleOrder.CartID = order.IdKeranjang
 		singleOrder.Status = order.Status
 		singleOrder.OrderList = singleOrderDetail
 

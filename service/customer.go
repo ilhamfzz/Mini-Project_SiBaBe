@@ -244,7 +244,7 @@ func (cs *customerService) GetCart(c echo.Context) (model.Chart_View, error) {
 	}
 	for _, produk_keranjang := range productFromChart {
 		result_product_Chart_view = append(result_product_Chart_view, model.Product_Chart_View{
-			ChartID:    produk_keranjang.IdKeranjang,
+			CartID:     produk_keranjang.IdKeranjang,
 			ProductID:  produk_keranjang.IdProduk,
 			Quantity:   produk_keranjang.JumlahProduk,
 			TotalPrice: produk_keranjang.TotalHarga,
@@ -442,6 +442,7 @@ func (cs *customerService) ConfirmCheckout(c echo.Context, checkout_data model.C
 	}
 
 	var checkout model.Checkout
+	checkout.Address = checkout_data.Address
 	if checkout_data.Address == "" {
 		checkout.Address = customer_data.Alamat
 	}
@@ -506,7 +507,7 @@ func (cs *customerService) GetHistory(c echo.Context) (model.History_View, error
 		var orderDomain model.Order_View
 		orderDomain.Id = order.ID
 		orderDomain.CreatedAt = order.CreatedAt
-		orderDomain.ChartID = order.IdKeranjang
+		orderDomain.CartID = order.IdKeranjang
 		orderDomain.CustomerUsername = order.CustomerUsername
 		orderDomain.TotalQty = order.JumlahBarang
 		orderDomain.TotalPrice = order.TotalHarga
@@ -552,7 +553,7 @@ func (cs *customerService) GetHistoryDetail(c echo.Context, id_pemesanan int) (m
 
 	var result model.Detail_History_View
 	result.OrderID = pemesanan.ID
-	result.ChartID = keranjang.ID
+	result.CartID = keranjang.ID
 	result.Status = pemesanan.Status
 	result.Address = pemesanan.Alamat
 	result.Courier = pemesanan.Kurir

@@ -5,8 +5,8 @@ import (
 )
 
 type Order_List struct {
-	OrderID   uint           `json:"order_id"`
-	ChartID   uint           `json:"chart_id"`
+	OrderID   uint           `json:"orderId"`
+	CartID    uint           `json:"cartId"`
 	Status    string         `json:"status"`
 	OrderList []Product_View `json:"orderList"`
 }
@@ -28,7 +28,7 @@ type Chart_View struct {
 }
 
 type Product_Chart_View struct {
-	ChartID    uint         `json:"chartId"`
+	CartID     uint         `json:"cartId"`
 	ProductID  uint         `json:"productId"`
 	Quantity   uint         `json:"quantity"`
 	TotalPrice uint         `json:"totalPrice"`
@@ -74,8 +74,8 @@ type History_View struct {
 type Order_View struct {
 	Id               uint      `json:"id"`
 	CreatedAt        time.Time `json:"createdAt"`
-	ChartID          uint      `json:"chartId"`
-	CustomerUsername string    `json:"customer_username"`
+	CartID           uint      `json:"cartId"`
+	CustomerUsername string    `json:"customerUsername"`
 	TotalQty         uint      `json:"totalQty"`
 	TotalPrice       uint      `json:"totalPrice"`
 	Status           string    `json:"status"`
@@ -87,7 +87,7 @@ type Order_View struct {
 
 type Detail_History_View struct {
 	OrderID uint                 `json:"orderId"`
-	ChartID uint                 `json:"chartId"`
+	CartID  uint                 `json:"cartId"`
 	Status  string               `json:"status"`
 	Address string               `json:"address"`
 	Courier string               `json:"courier"`
