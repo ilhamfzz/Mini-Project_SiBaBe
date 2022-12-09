@@ -439,12 +439,6 @@ func (cs *customerService) ConfirmCheckout(c echo.Context, checkout_data model.C
 		return model.Checkout{}, errors.New("keranjang tidak ditemukan")
 	}
 
-	updateCart.Status = "Telah Checkout"
-	err = cs.connection.Save(&updateCart).Error
-	if err != nil {
-		return model.Checkout{}, errors.New("gagal update status keranjang")
-	}
-
 	var customer_data model.Customer
 	err = cs.connection.Where("username = ?", middleware.ExtractTokenUsername(c)).First(&customer_data).Error
 	if err != nil {
@@ -481,6 +475,12 @@ func (cs *customerService) ConfirmCheckout(c echo.Context, checkout_data model.C
 		checkout.Invoice += "0"
 	}
 	checkout.Invoice += strconv.Itoa(int(pemesanan.ID))
+
+	updateCart.Status = "Telah Checkout " + strconv.Itoa(int(pemesanan.ID))
+	err = cs.connection.Save(&updateCart).Error
+	if err != nil {
+		return model.Checkout{}, errors.New("gagal update status keranjang")
+	}
 
 	var admin_pemesanan model.Admin_Pemesanan
 	admin_pemesanan.IdPemesanan = pemesanan.ID
@@ -558,8 +558,9 @@ func (cs *customerService) GetHistoryDetail(c echo.Context, id_pemesanan int) (m
 		return model.Detail_History_View{}, errors.New("pemesanan tidak ditemukan")
 	}
 
+	var statusCheck = "Telah Checkout " + strconv.Itoa(int(pemesanan.ID))
 	var keranjang model.Keranjang
-	err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Telah Checkout").First(&keranjang).Error
+	err = cs.connection.Where("username = ? AND status = ?", middleware.ExtractTokenUsername(c), statusCheck).First(&keranjang).Error
 	if err != nil {
 		return model.Detail_History_View{}, errors.New("keranjang tidak ditemukan")
 	}
