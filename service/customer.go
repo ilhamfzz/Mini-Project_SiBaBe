@@ -606,7 +606,7 @@ func (cs *customerService) GetHistoryDetail(c echo.Context, id_pemesanan int) (m
 	var result_produk_pemesanan_view []model.Product_Order_View
 	for i, produk_keranjang := range produk_keranjang {
 		result_produk_pemesanan_view = append(result_produk_pemesanan_view, model.Product_Order_View{
-			TotalQty:   produk_keranjang.JumlahProduk,
+			Quantity:   produk_keranjang.JumlahProduk,
 			TotalPrice: produk_keranjang.TotalHarga,
 			Product:    result_product_view[i],
 		})

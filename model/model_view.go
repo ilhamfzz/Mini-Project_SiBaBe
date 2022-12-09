@@ -98,7 +98,7 @@ type Detail_History_View struct {
 }
 
 type Product_Order_View struct {
-	TotalQty   uint         `json:"totalQty"`
+	Quantity   uint         `json:"quantity"`
 	TotalPrice uint         `json:"totalPrice"`
 	Product    Product_View `json:"product"`
 }
