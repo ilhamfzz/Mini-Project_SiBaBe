@@ -6,6 +6,7 @@ type Checkout_Binding struct {
 }
 
 type Payment_Binding struct {
+	Invoice        string `json:"invoice"`
 	ProofOfPayment string `json:"proofOfPayment"`
 }
 

@@ -5,6 +5,7 @@ import (
 	"Mini-Project_SiBaBe/middleware"
 	"Mini-Project_SiBaBe/model"
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -475,6 +476,12 @@ func (cs *customerService) ConfirmCheckout(c echo.Context, checkout_data model.C
 		return model.Checkout{}, errors.New("gagal membuat pemesanan")
 	}
 
+	checkout.Invoice = "P"
+	for i := 0; i < 8-len(strconv.Itoa(int(pemesanan.ID))); i++ {
+		checkout.Invoice += "0"
+	}
+	checkout.Invoice += strconv.Itoa(int(pemesanan.ID))
+
 	var admin_pemesanan model.Admin_Pemesanan
 	admin_pemesanan.IdPemesanan = pemesanan.ID
 	err = cs.connection.Create(&admin_pemesanan).Error
@@ -485,8 +492,16 @@ func (cs *customerService) ConfirmCheckout(c echo.Context, checkout_data model.C
 }
 
 func (cs *customerService) ConfirmPayment(c echo.Context, payment_data model.Payment_Binding) error {
+	var tempIdPemesanan string
+	for _, v := range payment_data.Invoice {
+		if v != 'P' && v != '0' {
+			tempIdPemesanan += string(v)
+		}
+	}
+	IdPemesanan, _ := strconv.Atoi(tempIdPemesanan)
+
 	var pemesanan model.Pemesanan
-	err := cs.connection.Where("customer_username = ? AND status = ?", middleware.ExtractTokenUsername(c), "Belum Dibayar").Find(&pemesanan).Error
+	err := cs.connection.Where("customer_username = ? AND status = ? AND id = ?", middleware.ExtractTokenUsername(c), "Belum Dibayar", uint(IdPemesanan)).Find(&pemesanan).Error
 	if err != nil {
 		return errors.New("pemesanan tidak ditemukan")
 	}
@@ -514,6 +529,11 @@ func (cs *customerService) GetHistory(c echo.Context) (model.History_View, error
 	var OrdersDomain []model.Order_View
 	for _, order := range pemesanan {
 		var orderDomain model.Order_View
+		orderDomain.Invoice = "P"
+		for i := 0; i < 8-len(strconv.Itoa(int(order.ID))); i++ {
+			orderDomain.Invoice += "0"
+		}
+		orderDomain.Invoice += strconv.Itoa(int(order.ID))
 		orderDomain.Id = order.ID
 		orderDomain.CreatedAt = order.CreatedAt
 		orderDomain.CartID = order.IdKeranjang
@@ -561,6 +581,11 @@ func (cs *customerService) GetHistoryDetail(c echo.Context, id_pemesanan int) (m
 	}
 
 	var result model.Detail_History_View
+	result.Invoice = "P"
+	for i := 0; i < 8-len(strconv.Itoa(int(pemesanan.ID))); i++ {
+		result.Invoice += "0"
+	}
+	result.Invoice += strconv.Itoa(int(pemesanan.ID))
 	result.OrderID = pemesanan.ID
 	result.CartID = keranjang.ID
 	result.Status = pemesanan.Status

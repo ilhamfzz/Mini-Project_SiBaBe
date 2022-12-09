@@ -12,6 +12,7 @@ type Order_List struct {
 }
 
 type Checkout struct {
+	Invoice      string    `json:"invoice"`
 	Address      string    `json:"address"`
 	Courier      string    `json:"courier"`
 	ShippingCost uint      `json:"shippingCost"`
@@ -72,6 +73,7 @@ type History_View struct {
 }
 
 type Order_View struct {
+	Invoice          string    `json:"invoice"`
 	Id               uint      `json:"id"`
 	CreatedAt        time.Time `json:"createdAt"`
 	CartID           uint      `json:"cartId"`
@@ -86,6 +88,7 @@ type Order_View struct {
 }
 
 type Detail_History_View struct {
+	Invoice string               `json:"invoice"`
 	OrderID uint                 `json:"orderId"`
 	CartID  uint                 `json:"cartId"`
 	Status  string               `json:"status"`
