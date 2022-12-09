@@ -8,6 +8,7 @@ import (
 )
 
 type CustomerSvc interface {
+	GetUser(c echo.Context) (model.General_Customer, error)
 	CreateUser(c echo.Context, user model.General_Customer) (model.General_Customer, error)
 	GetAllProduct(c echo.Context) ([]model.Product_View_Integrated, error)
 	GetProductById(c echo.Context, id int) (model.Detail_Product_View, error)

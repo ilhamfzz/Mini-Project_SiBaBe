@@ -236,3 +236,12 @@ func PostFeedback(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, dto.BuildResponse("Success post feedback", result))
 }
+
+// this api are requested from FE
+func GetUser(c echo.Context) error {
+	result, err := customerService.GetUser(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to get user", err))
+	}
+	return c.JSON(http.StatusOK, dto.BuildResponse("Success get user", result))
+}

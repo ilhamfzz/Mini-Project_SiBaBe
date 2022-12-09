@@ -647,3 +647,24 @@ func (cs *customerService) PostFeedback(c echo.Context, feedback_data model.Feed
 
 	return result, nil
 }
+
+// request endpoint from FE
+func (cs *customerService) GetUser(c echo.Context) (model.General_Customer, error) {
+	me := middleware.ExtractTokenUsername(c)
+	var customer model.Customer
+	err := cs.connection.Where("username = ?", me).First(&customer).Error
+	if err != nil {
+		return model.General_Customer{}, errors.New("customer tidak ditemukan")
+	}
+
+	return model.General_Customer{
+		Username:  customer.Username,
+		Password:  customer.Password,
+		Name:      customer.Nama,
+		Age:       customer.Umur,
+		Email:     customer.Email,
+		Phone:     customer.Telp,
+		Address:   customer.Alamat,
+		CreatedAt: customer.CreatedAt,
+	}, nil
+}

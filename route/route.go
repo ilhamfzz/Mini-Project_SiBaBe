@@ -33,6 +33,7 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 	eJwt := eCust.Group("/jwt")
 	eJwt.Use(mid.JWT([]byte(os.Getenv("SECRET_JWT"))))
 	// Routing User with JWT
+	eJwt.GET("/user", controller.GetUser)
 	eJwt.GET("/products", controller.GetAllProduct)
 	eJwt.GET("/products/:id", controller.GetProductById)
 	eJwt.GET("/products/add/:id", controller.PostProductToCart)
