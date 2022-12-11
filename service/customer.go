@@ -82,6 +82,14 @@ func (cs *customerService) GetAllProduct(c echo.Context) ([]model.Product_View_I
 		productsView = append(productsView, productView)
 	}
 
+	for i := 0; i < len(productsView); i++ {
+		for j := i + 1; j < len(productsView); j++ {
+			if productsView[i].Id > productsView[j].Id {
+				productsView[i], productsView[j] = productsView[j], productsView[i]
+			}
+		}
+	}
+
 	return productsView, nil
 }
 
