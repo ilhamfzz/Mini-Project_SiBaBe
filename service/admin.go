@@ -5,6 +5,7 @@ import (
 	"Mini-Project_SiBaBe/middleware"
 	"Mini-Project_SiBaBe/model"
 	"errors"
+	"sort"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -109,13 +110,10 @@ func (as *adminService) GetAllProduct(c echo.Context) ([]model.Product_View_Inte
 		productsView = append(productsView, productView)
 	}
 
-	for i := 0; i < len(productsView); i++ {
-		for j := i + 1; j < len(productsView); j++ {
-			if productsView[i].Id > productsView[j].Id {
-				productsView[i], productsView[j] = productsView[j], productsView[i]
-			}
-		}
-	}
+	// sort by id
+	sort.Slice(productsView, func(i, j int) bool {
+		return productsView[i].Id < productsView[j].Id
+	})
 
 	return productsView, nil
 }
@@ -260,7 +258,7 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 		err    error
 	)
 
-	err = as.connection.Where("status = ?", "Menunggu Validasi").Find(&orders).Error
+	err = as.connection.Where("status = ? AND status = ? AND status = ?", "Menunggu Validasi", "Terima", "Tolak").Find(&orders).Error
 	if err != nil {
 		return result, errors.New("failed to get order list")
 	}
@@ -310,13 +308,9 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 		}
 
 		// sort singleOrderDetail by id
-		for i := 0; i < len(singleOrderDetail); i++ {
-			for j := i + 1; j < len(singleOrderDetail); j++ {
-				if singleOrderDetail[i].Id > singleOrderDetail[j].Id {
-					singleOrderDetail[i], singleOrderDetail[j] = singleOrderDetail[j], singleOrderDetail[i]
-				}
-			}
-		}
+		sort.Slice(singleOrderDetail, func(i, j int) bool {
+			return singleOrderDetail[i].Id < singleOrderDetail[j].Id
+		})
 
 		singleOrder.OrderID = order.ID
 		singleOrder.CartID = order.IdKeranjang
@@ -325,6 +319,11 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 
 		result = append(result, singleOrder)
 	}
+
+	// sort by status Menunggu Validasi in the first
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Status < result[j].Status
+	})
 
 	return result, nil
 }
@@ -340,10 +339,10 @@ func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.U
 		return model.General_Order{}, errors.New("failed to get order")
 	}
 
+	order.Status = status.Status
 	if status.Status == "terima" {
 		order.Status = "Terima"
 	}
-	order.Status = status.Status
 	if status.Status != "Terima" {
 		order.Status = "Tolak"
 	}
