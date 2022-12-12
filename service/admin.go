@@ -258,9 +258,15 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 		err    error
 	)
 
-	err = as.connection.Where("status = ? OR status = ? OR status = ?", "Menunggu Validasi", "Terima", "Tolak").Find(&orders).Error
+	var ordersTemp []model.Pemesanan
+	err = as.connection.Find(&ordersTemp).Error
 	if err != nil {
 		return result, errors.New("failed to get order list")
+	}
+	for _, order := range ordersTemp {
+		if order.Status == "Menunggu Validasi" || order.Status == "Terima" || order.Status == "Tolak" {
+			orders = append(orders, order)
+		}
 	}
 
 	for _, order := range orders {
