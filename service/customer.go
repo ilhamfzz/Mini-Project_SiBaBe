@@ -5,7 +5,6 @@ import (
 	"Mini-Project_SiBaBe/middleware"
 	"Mini-Project_SiBaBe/model"
 	"errors"
-	"sort"
 	"strconv"
 	"time"
 
@@ -84,9 +83,13 @@ func (cs *customerService) GetAllProduct(c echo.Context) ([]model.Product_View_I
 	}
 
 	// sort by id
-	sort.Slice(productsView, func(i, j int) bool {
-		return productsView[i].Id < productsView[j].Id
-	})
+	for i := 0; i < len(productsView); i++ {
+		for j := i + 1; j < len(productsView); j++ {
+			if productsView[i].Id > productsView[j].Id {
+				productsView[i], productsView[j] = productsView[j], productsView[i]
+			}
+		}
+	}
 
 	return productsView, nil
 }
@@ -284,9 +287,13 @@ func (cs *customerService) GetCart(c echo.Context) (model.Cart_View, error) {
 	}
 
 	// sort result_product_Cart_view by product id
-	sort.Slice(result_product_Cart_view, func(i, j int) bool {
-		return result_product_Cart_view[i].ProductID < result_product_Cart_view[j].ProductID
-	})
+	for i := 0; i < len(result_product_Cart_view); i++ {
+		for j := i + 1; j < len(result_product_Cart_view); j++ {
+			if result_product_Cart_view[i].ProductID > result_product_Cart_view[j].ProductID {
+				result_product_Cart_view[i], result_product_Cart_view[j] = result_product_Cart_view[j], result_product_Cart_view[i]
+			}
+		}
+	}
 
 	result := model.Cart_View{
 		Id:         cart.ID,

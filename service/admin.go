@@ -5,7 +5,6 @@ import (
 	"Mini-Project_SiBaBe/middleware"
 	"Mini-Project_SiBaBe/model"
 	"errors"
-	"sort"
 	"strconv"
 	"time"
 
@@ -112,9 +111,13 @@ func (as *adminService) GetAllProduct(c echo.Context) ([]model.Product_View_Inte
 	}
 
 	// sort by id
-	sort.Slice(productsView, func(i, j int) bool {
-		return productsView[i].Id < productsView[j].Id
-	})
+	for i := 0; i < len(productsView); i++ {
+		for j := i + 1; j < len(productsView); j++ {
+			if productsView[i].Id > productsView[j].Id {
+				productsView[i], productsView[j] = productsView[j], productsView[i]
+			}
+		}
+	}
 
 	return productsView, nil
 }
@@ -298,9 +301,13 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 		}
 
 		// sort OrderDetail by product ID
-		sort.Slice(OrderDetail, func(i, j int) bool {
-			return OrderDetail[i].ProductID < OrderDetail[j].ProductID
-		})
+		for i := 0; i < len(OrderDetail); i++ {
+			for j := i + 1; j < len(OrderDetail); j++ {
+				if OrderDetail[i].ProductID > OrderDetail[j].ProductID {
+					OrderDetail[i], OrderDetail[j] = OrderDetail[j], OrderDetail[i]
+				}
+			}
+		}
 
 		singleOrder.Invoice = "P"
 		for i := 0; i < 8-len(strconv.Itoa(int(order.ID))); i++ {
@@ -316,9 +323,13 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 	}
 
 	// sort by status Menunggu Validasi in the first
-	sort.Slice(result, func(i, j int) bool {
-		return result[i].Status < result[j].Status
-	})
+	for i := 0; i < len(result); i++ {
+		for j := i + 1; j < len(result); j++ {
+			if result[i].Status == "Menunggu Validasi" && result[j].Status != "Menunggu Validasi" {
+				result[i], result[j] = result[j], result[i]
+			}
+		}
+	}
 
 	return result, nil
 }
