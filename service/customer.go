@@ -502,9 +502,10 @@ func (cs *customerService) ConfirmCheckout(c echo.Context, checkout_data model.C
 
 func (cs *customerService) ConfirmPayment(c echo.Context, payment_data model.Payment_Binding) error {
 	var tempIdPemesanan string
-	for _, v := range payment_data.Invoice {
+	for i, v := range payment_data.Invoice {
 		if v != 'P' && v != '0' {
-			tempIdPemesanan += string(v)
+			tempIdPemesanan = payment_data.Invoice[i:]
+			break
 		}
 	}
 	IdPemesanan, _ := strconv.Atoi(tempIdPemesanan)
