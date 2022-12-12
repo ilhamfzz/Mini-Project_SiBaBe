@@ -316,6 +316,17 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 		singleOrder.Invoice += strconv.Itoa(int(order.ID))
 		singleOrder.OrderID = order.ID
 		singleOrder.CartID = order.IdKeranjang
+		singleOrder.FinalPrice = order.TotalHarga
+
+		var user model.Customer
+		err = as.connection.Where("username = ?", order.CustomerUsername).Find(&user).Error
+		if err != nil {
+			return result, errors.New("failed to get user from each order list")
+		}
+
+		singleOrder.Customer = user.Nama
+		singleOrder.Phone = user.Telp
+		singleOrder.Address = user.Alamat
 		singleOrder.Status = order.Status
 		singleOrder.OrderList = OrderDetail
 
