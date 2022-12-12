@@ -325,7 +325,7 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 	// sort by status Menunggu Validasi in the first
 	for i := 0; i < len(result); i++ {
 		for j := i + 1; j < len(result); j++ {
-			if result[i].Status == "Menunggu Validasi" && result[j].Status != "Menunggu Validasi" {
+			if result[i].Status > result[j].Status {
 				result[i], result[j] = result[j], result[i]
 			}
 		}
