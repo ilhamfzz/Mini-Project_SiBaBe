@@ -258,7 +258,7 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 		err    error
 	)
 
-	err = as.connection.Where("status = ? AND status = ? AND status = ?", "Menunggu Validasi", "Terima", "Tolak").Find(&orders).Error
+	err = as.connection.Where("status = ? OR status = ? OR status = ?", "Menunggu Validasi", "Terima", "Tolak").Find(&orders).Error
 	if err != nil {
 		return result, errors.New("failed to get order list")
 	}
