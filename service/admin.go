@@ -6,6 +6,7 @@ import (
 	"Mini-Project_SiBaBe/model"
 	"errors"
 	"sort"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -266,9 +267,9 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 	for _, order := range orders {
 		var (
 			singleOrder       model.Order_List
-			singleOrderDetail []model.Product_View
+			OrderDetail       []model.Order_Product_View
+			singleOrderDetail model.Order_Product_View
 			cartsDomain       []model.Produk_Keranjang
-			carts             []model.General_Product_Cart
 		)
 
 		err := as.connection.Where("id_keranjang = ?", order.IdKeranjang).Find(&cartsDomain).Error
@@ -277,45 +278,39 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 		}
 
 		for _, cart := range cartsDomain {
-			cartTemp := model.General_Product_Cart{
-				CartID:     cart.IdKeranjang,
-				ProductID:  cart.IdProduk,
-				Quantity:   cart.JumlahProduk,
-				TotalPrice: cart.TotalHarga,
-			}
-			carts = append(carts, cartTemp)
-		}
-
-		var products []model.Produk
-		for _, cart := range carts {
+			singleOrderDetail.ProductID = cart.IdProduk
+			singleOrderDetail.Quantity = cart.JumlahProduk
+			singleOrderDetail.TotalPrice = cart.TotalHarga
 			var product model.Produk
-			err := as.connection.Where("id = ?", cart.ProductID).Find(&product).Error
+			err = as.connection.Where("id = ?", cart.IdProduk).Find(&product).Error
 			if err != nil {
 				return result, errors.New("failed to get produk from each order list")
 			}
-			products = append(products, product)
+			ProductOrderDetail := model.Product_View{
+				Id:          product.ID,
+				Name:        product.Nama,
+				Image:       product.Gambar,
+				Description: product.Deskripsi,
+				Price:       product.Harga,
+			}
+			singleOrderDetail.Product = ProductOrderDetail
+			OrderDetail = append(OrderDetail, singleOrderDetail)
 		}
 
-		for _, product := range products {
-			var singleProduct model.Product_View
-			singleProduct.Id = product.ID
-			singleProduct.Name = product.Nama
-			singleProduct.Image = product.Gambar
-			singleProduct.Description = product.Deskripsi
-			singleProduct.Price = product.Harga
-
-			singleOrderDetail = append(singleOrderDetail, singleProduct)
-		}
-
-		// sort singleOrderDetail by id
-		sort.Slice(singleOrderDetail, func(i, j int) bool {
-			return singleOrderDetail[i].Id < singleOrderDetail[j].Id
+		// sort OrderDetail by product ID
+		sort.Slice(OrderDetail, func(i, j int) bool {
+			return OrderDetail[i].ProductID < OrderDetail[j].ProductID
 		})
 
+		singleOrder.Invoice = "P"
+		for i := 0; i < 8-len(strconv.Itoa(int(order.ID))); i++ {
+			singleOrder.Invoice += "0"
+		}
+		singleOrder.Invoice += strconv.Itoa(int(order.ID))
 		singleOrder.OrderID = order.ID
 		singleOrder.CartID = order.IdKeranjang
 		singleOrder.Status = order.Status
-		singleOrder.OrderList = singleOrderDetail
+		singleOrder.OrderList = OrderDetail
 
 		result = append(result, singleOrder)
 	}

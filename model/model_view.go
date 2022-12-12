@@ -5,10 +5,18 @@ import (
 )
 
 type Order_List struct {
-	OrderID   uint           `json:"orderId"`
-	CartID    uint           `json:"cartId"`
-	Status    string         `json:"status"`
-	OrderList []Product_View `json:"orderList"`
+	Invoice   string               `json:"invoice"`
+	OrderID   uint                 `json:"orderId"`
+	CartID    uint                 `json:"cartId"`
+	Status    string               `json:"status"`
+	OrderList []Order_Product_View `json:"orderList"`
+}
+
+type Order_Product_View struct {
+	ProductID  uint         `json:"productId"`
+	Quantity   uint         `json:"quantity"`
+	TotalPrice uint         `json:"totalPrice"`
+	Product    Product_View `json:"product"`
 }
 
 type Checkout struct {
