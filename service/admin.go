@@ -326,7 +326,18 @@ func (as *adminService) GetOrderList(c echo.Context) ([]model.Order_List, error)
 
 		singleOrder.Customer = user.Nama
 		singleOrder.Phone = user.Telp
-		singleOrder.Address = user.Alamat
+
+		addresLink := "https://www.google.co.id/maps/search/"
+		var addresConv string
+		for _, char := range user.Alamat {
+			if char == ' ' {
+				addresConv += "+"
+			} else {
+				addresConv += string(char)
+			}
+		}
+		addresSuffix := "/@-7.279386,112.797269,14z"
+		singleOrder.Address = addresLink + addresConv + addresSuffix
 		singleOrder.Status = order.Status
 		singleOrder.OrderList = OrderDetail
 
