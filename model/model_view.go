@@ -122,9 +122,9 @@ type Monthly_Report_View struct {
 }
 
 type Money_Report struct {
-	Date    time.Time `json:"date"`
-	Income  uint      `json:"income"`
-	Expense uint      `json:"expense"`
+	Date    string `json:"date"`
+	Income  uint   `json:"income"`
+	Expense uint   `json:"expense"`
 }
 
 type Update_Order_Status_Binding struct {

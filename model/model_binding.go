@@ -11,8 +11,10 @@ type Payment_Binding struct {
 }
 
 type Production_Binding struct {
-	ProductName string `json:"productName"`
-	TotalPrice  uint   `json:"totalPrice"`
+	Date       string `json:"date"` // format: YYYY-MM-DD
+	Name       string `json:"name"`
+	TotalPrice uint   `json:"totalPrice"`
+	Image      string `json:"image"`
 }
 
 type Login_Binding struct {

@@ -54,14 +54,14 @@ func InitDatabaseTest() *gorm.DB {
 		&model.Keranjang{}, &model.Produk_Keranjang{},
 		&model.Produksi{}, &model.Pemesanan{},
 		&model.Admin_Pemesanan{}, &model.Feedback_Pemesanan{},
-		&model.Feedback{}, &model.Laporan_Keuangann{},
+		&model.Feedback{}, &model.Laporan_Keuangan{},
 	)
 	model.DB.AutoMigrate(
 		&model.Customer{}, &model.Admin{}, &model.Produk{},
 		&model.Keranjang{}, &model.Produk_Keranjang{},
 		&model.Produksi{}, &model.Pemesanan{},
 		&model.Admin_Pemesanan{}, &model.Feedback_Pemesanan{},
-		&model.Feedback{}, &model.Laporan_Keuangann{},
+		&model.Feedback{}, &model.Laporan_Keuangan{},
 	)
 
 	return model.DB

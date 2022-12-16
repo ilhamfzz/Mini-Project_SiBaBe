@@ -188,7 +188,7 @@ func (as *adminService) DeleteProduct(c echo.Context, id int) error {
 func (as *adminService) GetMonthlyReport(c echo.Context) ([]model.Monthly_Report_View, error) {
 	var (
 		monthlyReport []model.Monthly_Report_View
-		allReport     []model.Laporan_Keuangann
+		allReport     []model.Laporan_Keuangan
 		allReportView []model.Money_Report
 		err           error
 	)
@@ -212,15 +212,24 @@ func (as *adminService) GetMonthlyReport(c echo.Context) ([]model.Monthly_Report
 			singleReport      []model.Money_Report
 		)
 
+		monthlyReportTemp.Month = time.Month(i).String()
+		monthlyReportTemp.Year = time.Now().Year()
+
 		for _, report := range allReportView {
-			if report.Date.Month() == time.Month(i) && report.Date.Year() == time.Now().Year() {
-				monthlyReportTemp.Month = report.Date.Month().String()
-				monthlyReportTemp.Year = report.Date.Year()
+			temp := report.Date
+			compareDate, err := time.Parse("2006-01-02", temp)
+			if err != nil {
+				return monthlyReport, errors.New("failed to parse date")
+			}
+			if compareDate.Month().String() == monthlyReportTemp.Month && compareDate.Year() == time.Now().Year() {
 				singleReport = append(singleReport, report)
 			}
 		}
 
 		monthlyReportTemp.Report = singleReport
+		if len(singleReport) == 0 {
+			monthlyReportTemp.Report = []model.Money_Report{}
+		}
 		monthlyReport = append(monthlyReport, monthlyReportTemp)
 	}
 
@@ -229,21 +238,36 @@ func (as *adminService) GetMonthlyReport(c echo.Context) ([]model.Monthly_Report
 
 func (as *adminService) CreateProduction(c echo.Context, production model.Production_Binding) (model.General_Production, error) {
 	produksi := model.Produksi{
+		Date:          production.Date,
 		AdminUsername: middleware.ExtractTokenUsername(c),
 		TotalBiaya:    production.TotalPrice,
+		NamaBarang:    production.Name,
+		Gambar:        production.Image,
 	}
 	err := as.connection.Create(&produksi).Error
 	if err != nil {
 		return model.General_Production{}, errors.New("failed to create production")
 	}
 
-	var reportDomain model.Laporan_Keuangann
-	reportDomain.Tanggal = produksi.CreatedAt
-	reportDomain.TotalPemasukan = 0
-	reportDomain.TotalPengeluaran = produksi.TotalBiaya
-	err = as.connection.Create(&reportDomain).Error
+	var report model.Laporan_Keuangan
+	err = as.connection.Where("tanggal = ?", produksi.Date).Find(&report).Error
 	if err != nil {
-		return model.General_Production{}, errors.New("failed to create report")
+		return model.General_Production{}, errors.New("failed to get report")
+	}
+	if report.Tanggal != "" && (report.TotalPemasukan != 0 || report.TotalPengeluaran != 0) {
+		report.TotalPengeluaran += produksi.TotalBiaya
+		err = as.connection.Where("tanggal = ?", produksi.Date).Save(&report).Error
+		if err != nil {
+			return model.General_Production{}, errors.New("failed to update report")
+		}
+	} else {
+		report.Tanggal = produksi.Date
+		report.TotalPemasukan = 0
+		report.TotalPengeluaran = produksi.TotalBiaya
+		err = as.connection.Create(&report).Error
+		if err != nil {
+			return model.General_Production{}, errors.New("failed to create report")
+		}
 	}
 
 	return model.General_Production{
@@ -390,13 +414,26 @@ func (as *adminService) UpdateOrderStatus(c echo.Context, id int, status model.U
 	}
 
 	if order.Status == "Terima" {
-		var report model.Laporan_Keuangann
-		report.Tanggal = order.UpdatedAt
-		report.TotalPemasukan = order.TotalHarga
-		report.TotalPengeluaran = 0
-		err = as.connection.Create(&report).Error
+		var report model.Laporan_Keuangan
+		date := order.UpdatedAt.Format("2006-01-02")
+		err = as.connection.Where("tanggal = ?", date).Find(&report).Error
 		if err != nil {
-			return model.General_Order{}, errors.New("failed to create report")
+			return model.General_Order{}, errors.New("failed to get report")
+		}
+		if report.Tanggal != "" && (report.TotalPemasukan != 0 || report.TotalPengeluaran != 0) {
+			report.TotalPemasukan += order.TotalHarga
+			err = as.connection.Where("tanggal = ?", date).Save(&report).Error
+			if err != nil {
+				return model.General_Order{}, errors.New("failed to update report")
+			}
+		} else {
+			report.Tanggal = date
+			report.TotalPemasukan = order.TotalHarga
+			report.TotalPengeluaran = 0
+			err = as.connection.Create(&report).Error
+			if err != nil {
+				return model.General_Order{}, errors.New("failed to create report")
+			}
 		}
 
 		var carts []model.Produk_Keranjang

@@ -117,12 +117,21 @@ CREATE TABLE Feedback_Pemesanan(
 );
 
 CREATE TABLE Laporan_Keuangan(
-    tanggal TIMESTAMP NOT NULL,
+    tanggal VARCHAR(50) NOT NULL,
     total_pemasukan INT NOT NULL,
     total_pengeluaran INT NOT NULL,
-    PRIMARY KEY (tanggal)
+    PRIMARY KEY (tanggal),
     FOREIGN KEY (tanggal) REFERENCES Produksi(created_at),
     FOREIGN KEY (tanggal) REFERENCES Admin_Pemesanan(tanggal_validasi)
 );
 
-INSERT INTO Admin VALUES ('admin', 'admin', 'admin', 'admintest@gmail.com', '081234567890');
+-- Initial Assets Data
+INSERT INTO admins VALUES ('admin', 'admin', 'admin', 'admintest@gmail.com', '081234567890');
+-- Product Data from Backend Inserting data from Postman
+
+
+-- Insert Dummy data for testing chart monthly report
+
+INSERT INTO laporan_keuangans (tanggal, total_pemasukan, total_pengeluaran)
+    VALUES
+        ('2022-12-15', 345000, 72000),

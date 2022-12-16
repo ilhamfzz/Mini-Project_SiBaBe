@@ -29,7 +29,7 @@ func main() {
 		&model.Keranjang{}, &model.Produk_Keranjang{},
 		&model.Produksi{}, &model.Pemesanan{},
 		&model.Admin_Pemesanan{}, &model.Feedback_Pemesanan{},
-		&model.Feedback{}, &model.Laporan_Keuangann{},
+		&model.Feedback{}, &model.Laporan_Keuangan{},
 	)
 	app := route.New(customerSvc, adminSvc)
 
