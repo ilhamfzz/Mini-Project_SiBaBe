@@ -272,6 +272,7 @@ func (cs *customerService) GetCart(c echo.Context) (model.Cart_View, error) {
 		result_product_view = append(result_product_view, model.Product_View{
 			Id:          product.ID,
 			Name:        product.Nama,
+			Stock:		 product.Stok,
 			Image:       product.Gambar,
 			Description: product.Deskripsi,
 			Price:       product.Harga,

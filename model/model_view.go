@@ -54,6 +54,7 @@ type Product_View struct {
 	Image       string `json:"image"`
 	Description string `json:"description"`
 	Price       uint   `json:"price"`
+	Stock       uint   `json:"stock"`
 }
 
 type Detail_Product_View struct {
