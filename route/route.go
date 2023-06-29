@@ -15,6 +15,10 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 	controller.NewAdminController(adminSvc)
 
 	e := echo.New()
+	e.Use(mid.CORSWithConfig(mid.CORSConfig{
+		AllowOrigins: []string{"https://api.sibabe.app", "http://localhost:3000"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+	}))
 	m.LogMiddleware(e)
 
 	// Routing withouth JWT at Customer Page
