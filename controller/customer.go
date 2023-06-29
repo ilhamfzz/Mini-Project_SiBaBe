@@ -17,7 +17,7 @@ func NewCustomerController(service service.CustomerSvc) {
 }
 
 func CreateUser(c echo.Context) error {
-	user := model.Customer{}
+	user := model.General_Customer{}
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
@@ -51,7 +51,7 @@ func GetProductById(c echo.Context) error {
 }
 
 func LoginUser(c echo.Context) error {
-	user := model.Customer{}
+	user := model.Login_Binding{}
 	if err := c.Bind(&user); err != nil {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
@@ -81,7 +81,7 @@ func GetCart(c echo.Context) error {
 	result, err := customerService.GetCart(c)
 	if err != nil {
 		if err.Error() == "tidak ada barang di keranjang" {
-			return c.JSON(http.StatusNotFound, dto.BuildResponse("Success get cart", err.Error()))
+			return c.JSON(http.StatusOK, dto.BuildResponse("Success get cart", dto.EmptyObj{}))
 		}
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to get cart", err))
 	}
@@ -94,10 +94,19 @@ func UpdateProductFromCartPlus(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
 
-	result, err := customerService.UpdateProductFromCartPlus(c, id)
+	_, err = customerService.UpdateProductFromCartPlus(c, id)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to update product from cart plus", err))
 	}
+
+	result, err := customerService.GetCart(c)
+	if err != nil {
+		if err.Error() == "tidak ada barang di keranjang" {
+			return c.JSON(http.StatusOK, dto.BuildResponse("Success get cart", dto.EmptyObj{}))
+		}
+		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to get cart", err))
+	}
+
 	return c.JSON(http.StatusOK, dto.BuildResponse("Success update product from cart plus", result))
 }
 
@@ -107,14 +116,42 @@ func UpdateProductFromCartMinus(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
 
-	result, err := customerService.UpdateProductFromCartMinus(c, id)
+	_, err = customerService.UpdateProductFromCartMinus(c, id)
 	if err != nil {
-		if err.Error() == "produk berhasil dihapus dari keranjang" {
-			return c.JSON(http.StatusOK, dto.BuildResponse("Success update product from cart minus", err.Error()))
-		}
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to update product from cart minus", err))
 	}
+
+	result, err := customerService.GetCart(c)
+	if err != nil {
+		if err.Error() == "tidak ada barang di keranjang" {
+			return c.JSON(http.StatusOK, dto.BuildResponse("Success get cart", dto.EmptyObj{}))
+		}
+		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to get cart", err))
+	}
+
 	return c.JSON(http.StatusOK, dto.BuildResponse("Success update product from cart minus", result))
+}
+
+func DeleteProductFromCart(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
+	}
+
+	err = customerService.DeleteProductFromCart(c, id)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to delete product from cart", err))
+	}
+
+	result, err := customerService.GetCart(c)
+	if err != nil {
+		if err.Error() == "tidak ada barang di keranjang" {
+			return c.JSON(http.StatusOK, dto.BuildResponse("Success get cart", dto.EmptyObj{}))
+		}
+		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to get cart", err))
+	}
+
+	return c.JSON(http.StatusOK, dto.BuildResponse("Success delete product from cart", result))
 }
 
 func Checkout(c echo.Context) error {
@@ -186,17 +223,25 @@ func PostFeedback(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
 
-	var feedback model.Feedback
-	feedback.IdProduk = uint(id_produk)
+	var feedback model.Feedback_Binding
+	feedback.ProductId = uint(id_produk)
 	if err := c.Bind(&feedback); err != nil {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
 
-	feedback.IdProduk = uint(id_produk)
-	var result model.Feedback_View
+	var result model.Feedback_Full_View
 	result, err = customerService.PostFeedback(c, feedback)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to post feedback", err))
 	}
 	return c.JSON(http.StatusOK, dto.BuildResponse("Success post feedback", result))
+}
+
+// this api are requested from FE
+func GetUser(c echo.Context) error {
+	result, err := customerService.GetUser(c)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to get user", err))
+	}
+	return c.JSON(http.StatusOK, dto.BuildResponse("Success get user", result))
 }

@@ -17,7 +17,7 @@ func NewAdminController(service service.AdminSvc) {
 }
 
 func LoginAdmin(c echo.Context) error {
-	admin := model.Admin{}
+	admin := model.Login_Binding{}
 	if err := c.Bind(&admin); err != nil {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
@@ -30,7 +30,7 @@ func LoginAdmin(c echo.Context) error {
 }
 
 func CreateProduct(c echo.Context) error {
-	product := model.Produk{}
+	product := model.Product_Binding{}
 	if err := c.Bind(&product); err != nil {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
@@ -56,7 +56,7 @@ func UpdateProduct(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
 
-	product := model.Produk{}
+	product := model.Product_Binding{}
 	if err := c.Bind(&product); err != nil {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
@@ -74,11 +74,11 @@ func DeleteProduct(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}
 
-	result, err := adminService.DeleteProduct(c, id)
+	err = adminService.DeleteProduct(c, id)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, dto.BuildErrorResponse("Failed to delete product", err))
 	}
-	return c.JSON(http.StatusOK, dto.BuildResponse("Success delete product", result))
+	return c.JSON(http.StatusOK, dto.BuildResponse("Success delete product", dto.EmptyObj{}))
 }
 
 func GetMonthlyReport(c echo.Context) error {
@@ -93,7 +93,7 @@ func GetMonthlyReport(c echo.Context) error {
 }
 
 func CreateProduction(c echo.Context) error {
-	production := model.Produksi_Binding{}
+	production := model.Production_Binding{}
 	if err := c.Bind(&production); err != nil {
 		return c.JSON(http.StatusBadRequest, dto.BuildErrorResponse("Failed to process request", err))
 	}

@@ -16,8 +16,10 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 
 	e := echo.New()
 	e.Use(mid.CORSWithConfig(mid.CORSConfig{
-		AllowOrigins: []string{"https://api.sibabe.app", "http://localhost:3000"},
-		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		Skipper:      mid.DefaultSkipper,
+		AllowOrigins: []string{"*"},
+		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept, echo.HeaderAuthorization},
+		AllowMethods: []string{echo.GET, echo.PUT, echo.POST, echo.DELETE},
 	}))
 	m.LogMiddleware(e)
 
@@ -31,12 +33,14 @@ func New(customerSvc service.CustomerSvc, adminSvc service.AdminSvc) *echo.Echo 
 	eJwt := eCust.Group("/jwt")
 	eJwt.Use(mid.JWT([]byte(os.Getenv("SECRET_JWT"))))
 	// Routing User with JWT
+	eJwt.GET("/user", controller.GetUser)
 	eJwt.GET("/products", controller.GetAllProduct)
 	eJwt.GET("/products/:id", controller.GetProductById)
 	eJwt.GET("/products/add/:id", controller.PostProductToCart)
 	eJwt.GET("/cart", controller.GetCart)
 	eJwt.GET("/cart/plus/:id", controller.UpdateProductFromCartPlus)
 	eJwt.GET("/cart/minus/:id", controller.UpdateProductFromCartMinus)
+	eJwt.GET("/cart/delete/:id", controller.DeleteProductFromCart)
 	eJwt.GET("/checkout", controller.Checkout)
 	eJwt.POST("/checkout/confirm", controller.ConfirmCheckout)
 	eJwt.POST("/checkout/confirm/payment", controller.ConfirmPayment)
